@@ -1,6 +1,6 @@
 # MTT Readme
 
-# **Dokumentation FAIR.rdm Metadata Table Tool (MTT)**
+# **Dokumentation FAIR.rdm Metadata Tables Tool (MTT)**
 
 ## Metadataconverter from different repositories into ARIADNE Portal
 
