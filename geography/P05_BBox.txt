@@ -1,8 +1,0 @@
-<gmd:EX_GeographicBoundingBox><gmd:westBoundLongitude><gco:Decimal>-16.5250202876</gco:Decimal></gmd:westBoundLongitude><gmd:eastBoundLongitude><gco:Decimal>39.7249797124</gco:Decimal></gmd:eastBoundLongitude><gmd:southBoundLatitude><gco:Decimal>1.7683978578</gco:Decimal></gmd:southBoundLatitude><gmd:northBoundLatitude><gco:Decimal>22.6481965725</gco:Decimal></gmd:northBoundLatitude></gmd:EX_GeographicBoundingBox>
-
-westlimit=-16.53; southlimit=1.77; eastlimit=39.72; northlimit=22.65
-
-POLYGON((-16.53 22.65, 39.72 22.65, 39.72 1.77, -16.53 1.77, -16.53 22.65))
-
-
-<Polygon><outerBoundaryIs><LinearRing><coordinates>-16.5250202876,1.7683978578 39.7249797124,1.7683978578 39.7249797124,22.6481965725 -16.5250202876,22.6481965725 -16.5250202876,1.7683978578</coordinates></LinearRing></outerBoundaryIs></Polygon>
