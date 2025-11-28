@@ -1,0 +1,58 @@
+<?xml version="1.0" ?>
+<record>
+	<oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:crm="http://www.cidoc-crm.org/cidoc-crm/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dct="http://purl.org/dc/terms/" xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:dch="http://oai.dch.phil-fak.uni-koeln.de/" xmlns:owl="http://www.w3.org/2002/07/owl#">
+		<dct:identifier>Mege_Test</dct:identifier>
+		<dct:title>Mege, Archaeological site</dct:title>
+		<dct:description>anthropogen&lt;hr&gt;Zusatz: settlement mound, excavation&lt;hr&gt;Freie Beschreibung: Mege is anders a large settlement mound located in the southwestern Chad Basin. It has a diameter of c. 500 m and a height of c. eight meters. The cultural deposits accumulated on a shallow sand dune, which protrudes island-like above the clay plains of the so-called firgi-region. The region became accessible for human occupation only about 3000 years ago, after the lake levels had started to fall in the Late Holocene.
+The excavation covered three by three meters and reached down to seven meters. Despite some stratigraphic hiatuses, it covers about 2800 years and is thus one of the most complete Late Holocene archaeological sequences in NE Nigeria. The cultural deposits date from the firgi Late Stone Age up to the abandonment in 1983. The basal layer dates between c. 900 and 800 BCE. Iron Age occupations start in the second half of the first millennium CE and continue until the 15th/17th century CE. The uppermost layers date to the historical period and up to 1983.
+Sources: 
+
+Breunig, P., &amp; Franke, G. (2019). Archaeological map of Northeast Nigeria. Africa Magna.
+
+Gronenborn, D. (1998). Archaeological and Ethnohistorical Investigations Along the Southern Fringes of Lake Chad, 1993–1996. African Archaeological Review, 15(4), 225–260.</dct:description>
+		<crm:P81_ongoing_through/>
+		<dch:was_modified/>
+		<dct:publisher>
+			<foaf:name>DCH</foaf:name>
+			<foaf:identifier/>
+			<foaf:mbox>info-dch@uni-koeln.de</foaf:mbox>
+			<foaf:homepage>https://dch.phil-fak.uni-koeln.de/</foaf:homepage>
+			<foaf:member/>
+		</dct:publisher>
+		<dct:contributor>
+			<foaf:name>DCH</foaf:name>
+			<foaf:identifier/>
+			<foaf:mbox>info-dch@uni-koeln.de</foaf:mbox>
+			<foaf:homepage>https://dch.phil-fak.uni-koeln.de/</foaf:homepage>
+			<foaf:member/>
+		</dct:contributor>
+		<dct:creator>INVALID PERSON NAME. PLEASE CHECK SPELLING OR CREATE NEW ENTRY IN REGISTERED PERSONS.</dct:creator>
+		<dch:has_owner>INVALID PERSON NAME. PLEASE CHECK SPELLING OR CREATE NEW ENTRY IN REGISTERED PERSONS.</dch:has_owner>
+		<dch:has_responsible>INVALID PERSON NAME. PLEASE CHECK SPELLING OR CREATE NEW ENTRY IN REGISTERED PERSONS.</dch:has_responsible>
+		<dch:has_original_id>6945889</dch:has_original_id>
+		<dch:has_ariadne_subject/>
+		<dc:subject/>
+		<dch:has_derived_subject_uri/>
+		<dch:derived_subject_label/>
+		<crm:P72_has_language>german</crm:P72_has_language>
+		<dct:created/>
+		<dch:landing_page>https://arachne.dainst.org/entity/6945889</dch:landing_page>
+		<dch:access_policy>https://arachne.dainst.org/info/order</dch:access_policy>
+		<dct:accessRights>BY-NC-ND 3.0</dct:accessRights>
+		<dct:extent/>
+		<crm:P79_beginning_is_qualified_by/>
+		<crm:P80_end_is_qualified_by/>
+		<dch:has_spatial_coverage>
+			<dch:Point>
+				<crm:P87_is_identified_by>Mege (NA 94/7)</crm:P87_is_identified_by>
+				<dch:coordinate_system/>
+				<crm:P3_has_note/>
+				<dch:place_uri/>
+				<geo:lat>12.3</geo:lat>
+				<geo:long>14.3</geo:long>
+			</dch:Point>
+		</dch:has_spatial_coverage>
+		<owl:sameAs/>
+		<dct:isPartOf/>
+	</oai_dc:dc>
+</record>
