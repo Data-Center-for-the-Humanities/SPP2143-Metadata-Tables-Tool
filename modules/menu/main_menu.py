@@ -290,7 +290,7 @@ def main_menu_design(root=None):
     mainmenu.grid_rowconfigure(8, weight=1)
 
     #Titel 1. Zeile
-    label_title = tk.Label(mainmenu, text="FAIR.rdm Metadata Table Tool v 0.2", font=("Helvetica", 16, "bold"), anchor="w")
+    label_title = tk.Label(mainmenu, text="FAIR.rdm Metadata Tables Tool Beta 1.0", font=("Helvetica", 16, "bold"), anchor="w")
     label_title.grid(row=0, column=0, columnspan=2, pady=10, padx=10, sticky="nw")
 
     #Untertitel 2. Zeile
