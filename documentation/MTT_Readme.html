@@ -1,0 +1,707 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>MTT Readme</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	padding: 0 1em;
+}
+
+.column:first-child {
+	padding-left: 0;
+}
+
+.column:last-child {
+	padding-right: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding: 0.125rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+	border-collapse: collapse;
+}
+
+table {
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	transform: scale(1.5);
+	margin-right: 0.6em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style></head><body><article id="1c394933-15d6-809d-ba69-f3176ec1a517" class="page sans"><header><h1 class="page-title">MTT Readme</h1><p class="page-description"></p></header><div class="page-body"><h1 id="1c394933-15d6-80e4-b2e3-f58da8619480" class=""><strong>Dokumentation des FAIR.rdm Metadata Tables Tool (MTT)</strong></h1><h2 id="1c394933-15d6-8070-bbbf-e0a68d4b7517" class="">Metadataconverter from different repositories into ARIADNE Portal</h2><p id="1c394933-15d6-80b7-8bd6-f0dda440a726" class=""><em>MTT Version 1.0 BETA / Dokumentation Version 0.4 / Lukas Lammers / FAIR.rdm (P11) im SPP 2143 “Entangled Africa” founded by the German Research Foundation (DFG)</em></p><h2 id="28d94933-15d6-8032-808e-de4d271bd6e9" class="">1. Funktion</h2><p id="28d94933-15d6-8019-9f3b-c0b548e7b251" class="">Das Metadata Tables Tool, kurz MTT, wurde entwickelt, um die Dateneingabe in die ARIADNE Research Infrastructure (RI) zu unterstützen und Metadaten aus verschiedenen Repositorien im ARIADNE Portal zu publizieren. Hierzu bietet das MTT zwei grundlegende Funktionen: Erstens das semi-automatische Harvesten und Harmonisieren von Metadaten, zweitens die Konvertierung dieser Metadaten in den SPP-2143-Metadatenstandard.</p><h2 id="28d94933-15d6-80e0-8abb-c1c513b55c56" class="">2. Kontext</h2><p id="28d94933-15d6-8085-bc06-fc44a449f6e0" class="">Das MTT wurde im Projekt FAIR.rdm im von der Deutschen Forschungsgemeinschaft geförderten SPP 2143 “Entangled Africa” entwickelt. Neben FAIR.rdm arbeiten im SPP 2143 zwölf weitere Projekte, deren Forschungsdaten über zahlreiche Repositorien verteilt sind. Um die Forschungsdaten jedoch in ihrer Gesamtheit durchsuchen zu können, wurde eine Kooperation mit der ARIADNE RI hergestellt und ein Workflow entwickelt, wie eine Dateneingabe für den SPP 2143 funktionieren kann. Teil dessen ist ein SPP-interner Metadatenstandard, der mit jedem der bisher genutzten Repositorien kompatibel ist. Dennoch ist zur Harmonisierung der Metadaten ein nicht unerheblicher manueller Aufwand nötig. Deswegen wurde mit dem MTT ein Tool entwickelt, das diese Arbeit erleichtern soll.</p><p id="28d94933-15d6-8072-94a1-fa756a73368a" class="">Im SPP 2143 übernimmt die Bereitstellung der Metadaten das Data Center for the Humanities (DCH) der Universität zu Köln. Die vom MTT erzeugten XML-Metadaten werden in ein GitLab-Repositorium gespiegelt und von dort wiederum in eine mit jOAI aufgesetzte OAI-PMH-Schnittstelle. Dort können die Metadaten automatisch von ARIADNE abgerufen werden. In der RI selbst liegt ein Mapping vor, mit dem die Daten dann in ARIADNEs Datenmodell übertragen werden.</p><h2 id="28d94933-15d6-8020-a0f4-dda17649ab35" class="">3. Installation und erste Ausführung</h2><p id="28d94933-15d6-8036-af91-fc80f5d15446" class="">Das MTT ist eine Python Anwendung. Python kann hier heruntergeladen werden:</p><p id="28d94933-15d6-807a-8730-e52634c95b86" class=""><a href="https://www.python.org/">https://www.python.org/</a></p><p id="28d94933-15d6-80a6-a943-d432776c9e46" class="">Außerdem werden einige Python-Bibliotheken benötigt. Diese können unter Windows im Terminal mit pip installiert werden:</p><p id="28d94933-15d6-80cb-86e7-ed3c04caeedc" class=""><code>pip install pandas</code></p><p id="28d94933-15d6-80ec-9f01-d64d4b5cf6a1" class=""><code>pip install requests</code></p><p id="28d94933-15d6-8099-afd5-f1d9cfce33e6" class=""><code>pip install openpyxl</code></p><p id="28d94933-15d6-8072-a2ed-cdb5611592cb" class="">Die Ordnerstruktur des MTT ist unbedingt einzuhalten. Es kann über das Terminal mit Python gestartet werden:</p><p id="28d94933-15d6-804d-9b3b-d9d52c559a7d" class=""><code>python MTT_MainProgram.py</code></p><p id="28d94933-15d6-801d-912e-e4e5dba6efd7" class="">Bestimmte Dinge im MTT müssen fallspezifisch angepasst werden. Mehr dazu im Folgenden Abschnitt (4. Anpassung).</p><h2 id="28d94933-15d6-8056-a9ae-e066b26fe2dd" class="">4. Anpassung</h2><p id="28d94933-15d6-8020-8be0-e6439f666546" class="">Der Code des MTT ist nicht kompiliert, um maximale Anpassungsfähigkeit zu gewähren.</p><p id="28d94933-15d6-80be-84e0-c8b51b830d64" class="">Als erstes müssen in <em>/modules</em> die Variablen in der mtt_config.py geändert werden. </p><p id="28d94933-15d6-80f9-83c7-cdf0b922bb23" class="">Standardmäßig spiegelt das MTT den Inhalt des Ordners metadata_mirror in ein Git-Repositorium. Dieses muss nach bei Bedarf erstellt oder ein alternativer Weg implementiert werden. In der ursprünglichen Disposition des Workflows mit dem MTT als Metadatenkonverter, werden die XML-Metadaten vom Git-Repo in die OAI-PMH-Schnittstelle gespiegelt. Andere Varianten des Datenflusses von metadata_mirror zu ARIADNE sind jedoch möglich und sollten von entsprechendem Fachpersonal umgesetzt werden können.</p><p id="28d94933-15d6-8026-b8f7-f04af0b4c0ce" class="">Mehr zu mtt_config.py in den Kompontenbeschreibungen.</p><p id="28d94933-15d6-80eb-82bb-c88cb2d1acd8" class="">Das Mapping eines Metadatenschemas eines Repositoriums erfolgt in Modulen, die mit “metadataimpot_” beginnen. Die vorliegenden Module können als Beispiele und Entwicklungsgrundlagen verwendet werden. Grundlegende Python-Kenntnisse sind hierzu erforderlich.</p><p id="28d94933-15d6-801f-b34c-ca2de93d39ca" class="">Neue Module müssen in recognize_repository.py aufgenommen werden, damit sie von der Anwendung verwendet werden können.</p><p id="28d94933-15d6-800d-943f-c3fcaade87f6" class="">Personen- und institutionsbezogene Daten werden in metadata_tables/registered_persons.xlsx eingetragen. Beim Ausfüllen des Metadatentemplates wird dann lediglich der Name benötigt, die restlichen Informationen werden aus dieser Tabelle abgefragt.</p><p id="28d94933-15d6-80b6-9e93-faef7bbdfdc8" class="">Eine Veränderung des zugrunde liegenden Datenschemas (dem SPP2143-Metadatenstandard) ist nicht unmöglich, erfordert jedoch Anpassungen in sämtlichen Modulen, inklusive der GUI.</p><h2 id="1c394933-15d6-80b6-a15c-e639147cfba7" class=""><strong>5. Komponenten:</strong></h2><p id="1c394933-15d6-80d2-a6ff-d32c81029940" class=""><strong>Main Script:</strong> GUI mit TKinter, lädt Module und Daten je nach Bedarf. Ausführen im CMD/Shell mit <code>python MTT_MainProgram.py</code></p><p id="1c394933-15d6-80c1-84b1-e6f470b57f67" class=""><strong>/documentation:</strong> Enthält diese Doku, eine Beschreibung des SPP-2143-Metadatenstandards und eine Referenz des AO Cat, der in Gänze auch auf Zenodo zu finden ist.</p><p id="1c394933-15d6-80fe-ad6c-c66bf01cb721" class=""><strong>/metadata_mirror:</strong> Enthält die für ARIADNE bereitgestellten Metadaten in XML. Wird zu GitLab gespiegelt, von dort in die OAI-PMH Schnittstelle (jOAI via DCH GitLab) und vor dort wiederrum in ARIADNE.</p><p id="1c394933-15d6-8064-853a-dc48f494ab8b" class=""><strong>/metadata_tables:</strong> Enthält gesamte Projektdaten in tabellarischer Form. In diesem Ordner befinden sich außerdem die wichtigen Tabellen:<div class="indented"><p id="1c394933-15d6-801b-b762-f92e6df5e04f" class=""><strong>/registered_persons.xlsx:</strong> Enthält alle Individuen und Institutionen, die in den Metadaten auftauchen. Neue Personen können direkt in der Tabelle oder mithilfe der GUI angelegt werden.</p><p id="25494933-15d6-807b-b982-e9d3b3fbdb0d" class=""><strong>/log.xlsx </strong>Logdatei über die Arbeitsschritte und Prozesse des MTT. Erfasst sämtliche Änderungen der Daten und durchgeführte Konvertierungen. Dies ist keine Back-Up-Datei, sondern dient lediglich der Dokumentation der durchgeführten Arbeitsschritte.</p></div></p><p id="1c394933-15d6-8074-a59e-e429df8e70c0" class=""><strong>/templates:</strong> Enthält die Excel-Templates zur Eingabe der Metadaten. Derzeit stehen Collections und Individual Data Resources (IDR) zur Verfügung:<div class="indented"><p id="25494933-15d6-808d-aa6e-db48f6853801" class=""><strong>/SPP2143_ARIADNE_Collection_Import_Template.xlsx:</strong> Template für Collections. Collections können Teil von anderen Collections sein und beliebig vernestet werden.</p><p id="25494933-15d6-809a-a0f6-dd8d4ecc2ef4" class=""><strong>/SPP2143_ARIADNE_IDR_Import_Template.xlsx</strong>: Template für IDRs. IDRs sind unteilbar. Sie sind Childs von Collections können aber selbst keine Parents sein.</p></div></p><p id="1c394933-15d6-8076-8410-d77ce50ad672" class=""><strong>/modules:</strong> Module werden nach Bedarf geladen.<div class="indented"><p id="1c394933-15d6-8021-a1c9-ea4e6862ad8e" class=""><strong>/repo_specific_modules.py:</strong> Enthält Funktionen und Variablen, die nötig sind um Metadaten soweit wie möglich automatisch zu harvesten. Können nach Bedarf angepasst werden.</p><p id="25494933-15d6-8082-be78-e1729a2d0db3" class=""><strong>/recognize_repository.py</strong>: Bestimmt anhand der angegebenen URI, welches Modul zum Harvesten der Daten benötigt wird. Muss bei neuen Modulen entsprechend angepasst werden.</p><p id="1c394933-15d6-802c-86fd-f200f596cb99" class=""><strong>/mtt_config.py:</strong> Enthält grundlegende Einstellungsparameter und Projektspezifische Konstanten.<br/>1. Konstante Werte für Datenfelder, die allen Metadatensätzen feststehen. / 2. Eingaben zur Synchronisation mit einem Git-Repositorium / 3. Online-Ressourcen die im weiteren Verlauf des Workflows relevant sind</p><p id="28b94933-15d6-80b1-b6cb-c9d6fbb5ae8e" class=""><strong>/xml_conversion.py:</strong> Dieses Modul führt die Konvertierung tabellarischer Metadaten in XML-Metadaten durch und speichert diese in metadata_mirror.</p><p id="28b94933-15d6-80b3-b8aa-f7b8a01cafea" class=""><strong>/sync.py: </strong>spiegelt den Inhalt des Ordner metadata_mirror in ein Git-Repo.  </p><p id="28d94933-15d6-8009-b2e4-d2b9aa6c9bc4" class=""><strong>/wikidata_country_info.py:</strong> Zu jeder Lokalisierung ist eine nähere Beschreibung in ARIADNE erforderlich. Diese wird mithilfe dieses Moduls aus Wikidata abgefragt. Wird diese Funktion nicht benötigt, kann das Modul deaktiviert werden.</p><p id="25494933-15d6-8015-82b7-c600b70a7b26" class=""><strong>/menu/:</strong> Enthält die GUI-Module und Funktionsaufrufe der oben genannten Module. <div class="indented"><p id="28d94933-15d6-803f-a12a-f2dfa433aa45" class=""><strong>/change_dataset.py:</strong> Ist das Fenster zum Ändern und Löschen von Datensätzen.</p><p id="28d94933-15d6-80f4-8d40-dbd694eef053" class=""><strong>/main_menu.py:</strong> Ist das Hauptmenü</p><p id="28d94933-15d6-809c-80df-c29a47974df3" class=""><strong>/new_dataset.py:</strong> Ist das Fenster zum Erstellen eines neuen Datensatzes</p><p id="28d94933-15d6-8022-b319-c2686985cdb4" class=""><strong>/new_person_and_institution.py:</strong> Ist das Menü zum Anlegen einer neuen Person oder Institution.</p><p id="28d94933-15d6-8013-af0a-c36d0633b8f7" class="">Außerdem enthält der Ordner die grafischen Elemente der Anwendung.</p></div></p></div></p><h2 id="1c394933-15d6-80b0-9117-dee9912acc4f" class=""><strong>6. Benutzeranleitung:</strong></h2><h3 id="25494933-15d6-80af-acfd-e3b75c1dab6f" class="">6.1 Das Hauptmenü</h3><p id="25494933-15d6-8028-b689-d6127131a5d5" class="">Oben links befinden sich fünf Schaltflächen deren Funktionen weiter unten detailliert beschrieben werden:</p><ul id="25494933-15d6-80c7-9d9b-c605b9c38aff" class="bulleted-list"><li style="list-style-type:disc">“New Person / Institution” unter 6.1</li></ul><ul id="25494933-15d6-8040-baea-d7cfbd0df71c" class="bulleted-list"><li style="list-style-type:disc">“New Data Record” unter 6.2</li></ul><ul id="25494933-15d6-8001-a255-facf8e740cd9" class="bulleted-list"><li style="list-style-type:disc">“Change Data Record” unter 6.3</li></ul><ul id="25494933-15d6-8006-80be-d451399f3cc5" class="bulleted-list"><li style="list-style-type:disc">“Push to GitLab” unter 6.4</li></ul><ul id="25494933-15d6-804c-9d20-e020abdc4c20" class="bulleted-list"><li style="list-style-type:disc">“View Online Infrastructure” unter 6.5</li></ul><p id="25494933-15d6-80be-8482-f5e0769f35b2" class="">Darunter befindet sich der “Data Selector”. Er gibt einen Überblick über bisher angelegte Datensätze. Die einzelnen Einträge lassen sich auswählen. Sie erscheinen dann rechts im “Data Viewer”.</p><p id="25494933-15d6-80aa-965c-efff22324337" class="">Mit dem “Exit”-Button wird die Anwendung beendet. “Open Documentation” öffnet diese Dokumentation. “Open Configuration” öffnet die “mtt_config.py” in /modules.</p><h3 id="1c394933-15d6-805a-8667-f69095a0e058" class="">6.1 Anlegen neuer Person/Institution</h3><p id="24894933-15d6-8028-b9b4-e0d71b2cf117" class="">Der Button “New Person / Institution” öffnet ein neues Menü zum Anlegen einer neuen Person oder Institution.</p><p id="25494933-15d6-80bf-bbe9-f7f937f2e043" class="">Mit dem Radio-Button muss zwischen Person oder Institution gewählt werden.</p><p id="25494933-15d6-803e-b30e-e47a417810cc" class="">Nur der Name ist ein Pflichtfeld. Siehe die SPP2143-Metadatenstandard-Dokumentation für nähere Feldbeschreibungen.</p><p id="25494933-15d6-8061-91c6-dc1bb739024f" class="">Wichtig ist, dass nur Personen einer Institution angehören können. Keine Institution kann in dieser Ontologie einer anderen Institution angehören.</p><p id="25494933-15d6-8041-a5e3-f2143f75484a" class="">“Save Entry” speichert den Eintrag. Er wird in der Tabelle “registered_persons.xlsx” gespeichert.</p><p id="25494933-15d6-80e8-98e0-e4cc79a86ca1" class="">“Cancel without Saving” bricht den Vorgang ab und kehrt ohne zu speichern zum Hauptmenü zurück.</p><p id="25494933-15d6-80f5-af20-e493d4ae22b7" class="">“Back” kann nach dem Speichern verwendet werden, um ins Hauptmenü zurück zu gelangen.</p><h3 id="25494933-15d6-8043-801c-ce560f435840" class="">6.2 Anlegen eines neuen Metadatensatzes</h3><p id="25494933-15d6-8011-94ac-cf2aed16e03d" class="">Mit dem Button “New Data Record” lässt sich ein neuer Metadatensatz anlegen.</p><p id="25494933-15d6-80b0-9135-df968410996a" class="">Zunächst öffnet sich ein kleines Dialogfenster und fordert die wichtigsten Daten vorab.</p><p id="25494933-15d6-8033-a01d-ff93928c293c" class="">Der Typ der Ressource muss gewählt werden. Aktuell stehen Collections und IDRs zur Auswahl.</p><p id="25494933-15d6-803a-be0d-e72c6238844b" class="">Der “Dataset Name” wird der interne Identifier für das MTT und ARIADNE. Er sollte einem klaren Benennungsschema folgen. Im SPP 2143 z.B. Projektnummer-Ressourcentyp-Laufnummer. Während der Eingabe werden ähnliche Namen von vorhandenen Datensätzen eingeblendet, um die Benennung zu erleichtern und doppelte Namen zu vermeiden.</p><p id="25494933-15d6-8099-aef8-f51dfaaf8802" class="">Zuletzt muss die URI zum Datensatz eingetragen werden. Diese wird später verwendet, um Metadaten automatisch abzufragen und zu integrieren, gemäß dem jeweiligen Modul. Wird der Default-Wert “blank” beibehalten, wird ein leeres Template geladen.</p><p id="25494933-15d6-80bf-86c0-e8f3e317b9b7" class="">Mit einem Klick auf “OK” öffnet sich das Menü zum Anlegen eines neuen Metadatensatzes. Alle zuvor eingegebenen Infos erscheinen im Data Viewer. Der Data Selector zeigt nun an, welche Angaben noch eingetragen werden müssen.</p><p id="25494933-15d6-802f-8425-e318d19d920c" class="">Der Button “Retrieve Data” aktiviert das Metadatenharvesting und fügt alle verfügbaren (natürlich zuvor im entsprechenden Modul gemappten) Metadaten ein.</p><p id="25494933-15d6-805b-88b6-c2809f77659d" class="">Die Datenfelder lassen sich im Data Viewer auch manuell bearbeiten. Instruktionen dazu befinden sich unter dem Data Viewer.</p><p id="25494933-15d6-8076-b6da-c3bc3106154c" class="">“Save Progress” speichert alle Änderungen.</p><p id="28d94933-15d6-801d-b5bb-cd3ae9a52f29" class="">”Open with Excel” erlaubt die Bearbeitung direkt in Excel.</p><p id="28d94933-15d6-8029-bd32-c6ef1f516577" class="">Wenn alle mit “mandatory” bezeichneten Felder ausgefüllt sind, kann der Datensatz mit “Convert to XML” in XML-Daten umgewandelt werden. Diese befinden sich dann im Ordner “metadata_mirror”.</p><p id="28d94933-15d6-80a1-9256-cd6a42a59887" class="">Mit dem Button “Show XML” kann die soeben generierte XML-Datei geöffnet werden.</p><h3 id="25494933-15d6-8029-8fc9-e20fa28c8419" class="">6.3 Ändern eines Metadatensatzes</h3><p id="28d94933-15d6-803b-be64-e5e8aeb82ef5" class="">Zum Ändern oder Löschen eines Metadatensatzes muss der entsprechende Datensatz im Data Selector ausgewählt werden. Nur dann öffnet sich das weiterführende Menü.</p><p id="28d94933-15d6-80d2-9e3f-e6b6ae5b38e9" class="">Der Button “Retrieve Data” aktiviert das Metadatenharvesting und fügt alle verfügbaren (natürlich zuvor im entsprechenden Modul gemappten) Metadaten ein.</p><p id="28d94933-15d6-8001-9106-e65a024b9c78" class="">Die Datenfelder lassen sich im Data Viewer auch manuell bearbeiten. Instruktionen dazu befinden sich unter dem Data Viewer.</p><p id="28d94933-15d6-80ee-b935-d0d80d83a523" class="">“Save Progress” speichert alle Änderungen.</p><p id="28d94933-15d6-8035-834d-c05e3389912b" class="">”Open with Excel” erlaubt die Bearbeitung direkt in Excel.</p><p id="28d94933-15d6-80f8-bdb4-d9b349aae773" class="">Wenn alle mit “mandatory” bezeichneten Felder ausgefüllt sind, kann der Datensatz mit “Convert to XML” in XML-Daten umgewandelt werden. Diese befinden sich dann im Ordner “metadata_mirror”.</p><p id="28d94933-15d6-80fb-9811-cdd550258677" class="">Mit der Schaltfläche “Delete Dataset” kann ein Datensatz vollständig gelöscht werden.</p><h3 id="25494933-15d6-8014-b3c7-f731f2bcc83d" class="">6.4 Push to GitLab</h3><p id="28d94933-15d6-803e-9e18-f42cb263d767" class="">Diese Schaltfläche löst eine Synchronisierung zwischen dem Ornder “metadata_mirror” und dem zugewiesenen Git-Repo aus. Im Git-Repo werden alle Datensätze neu hochgeladen, die neu erstellt oder geändert wurden. Einträge, die aus “metadata_mirror” entfernt wurden, werden auch im Git-Repo entfernt.</p><h3 id="25494933-15d6-805d-b7d2-e35e4b10ab8a" class="">6.5 View Online Infrastructure</h3><p id="25494933-15d6-80d1-a201-e5be21f56ef6" class="">Der Knopf öffnet im Browser in der mtt_config.py vordefinierte URLs und verschafft einen Überblick über den weiteren Workflow. Dies können beispielsweise das Git-Repo sein, die OAI-PMH-Schnittstelle oder das ARIADNE-Portal.</p><h2 id="28d94933-15d6-8045-8d47-fdcec3780a3f" class="">7. Last Notes</h2><p id="28d94933-15d6-808e-a410-e66256ee9513" class="">Entwickelt von Lukas Lammers<br/>Mitarbeiter im Data Center for the Humanities (DCH) der Universität zu Köln<br/>im Projekt FAIR.rdm<br/>teil des SPP 2143 “Entangled Africa”<br/>gefördert von der Deutschen Forschungsgemeinschaft 2021-2026 (Projektnummer 467208261)</p><p id="28d94933-15d6-8034-b7d4-ce29e893b477" class="">
+</p><p id="28d94933-15d6-80a6-87e7-e418a91bb18d" class="">MIT License, Copyright (c) 2025 Lukas Lammers</p></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>
