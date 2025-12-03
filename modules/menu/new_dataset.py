@@ -347,6 +347,7 @@ def new_dataset(root=None):
             #save file to metadata_mirror folder
             with open(os.path.join(os.path.dirname(__file__), f"../../metadata_mirror/{filename}.xml"), 'w', encoding='utf-8') as f:
                 f.write(formatted_xml)
+            messagebox.showinfo("Success", f"XML file {filename}.xml has been created successfully in metadata_mirror folder.")
 
     def show_xml():
         print("Opening most current XML file...")
@@ -664,6 +665,7 @@ if __name__ == "__main__":
     import tkinter as tk
     from tkinter import messagebox
     from tkinter import ttk
+    from datetime import datetime
     import pandas as pd
     import os
     import sys
@@ -679,6 +681,7 @@ else:
     import tkinter as tk
     from tkinter import messagebox
     from tkinter import ttk
+    from datetime import datetime
     import pandas as pd
     import os
     import sys
