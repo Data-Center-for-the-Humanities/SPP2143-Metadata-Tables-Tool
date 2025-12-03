@@ -2,15 +2,33 @@ def mirror_to_gitlab(local_folder, repo_url, target_subdir, token, branch="main"
     """
     Spiegelt einen lokalen Ordner in einen Unterordner eines GitLab-Repos per temporärem Git-Repo.
     """
+    import tkinter as tk
+    
+    # Statusfenster erstellen
+    status_window = tk.Tk()
+    status_window.title("Synchronisierung")
+    status_window.geometry("400x100")
+    status_label = tk.Label(status_window, text="🚀 Synchronisierung wird gestartet...", font=("Arial", 12), pady=20)
+    status_label.pack()
+    status_window.update()
+    
     # Token in HTTPS-URL einbetten
     if repo_url.startswith("https://"):
         repo_auth = repo_url.replace("https://", f"https://oauth2:{token}@")
     else:
+        status_label.config(text="❌ Fehler: Repo-URL muss mit 'https://' beginnen")
+        status_window.update()
+        status_window.after(5000, status_window.destroy)
+        status_window.mainloop()
         raise ValueError("Repo-URL muss mit 'https://' beginnen")
 
     # Prüfen, ob local_folder existiert und Dateien enthält
     if not os.path.exists(local_folder):
         print(f"Lokaler Ordner nicht gefunden: {local_folder}")
+        status_label.config(text=f"❌ Lokaler Ordner nicht gefunden: {local_folder}")
+        status_window.update()
+        status_window.after(5000, status_window.destroy)
+        status_window.mainloop()
         return
     total_files = 0
     for _, _, files in os.walk(local_folder):
@@ -18,19 +36,31 @@ def mirror_to_gitlab(local_folder, repo_url, target_subdir, token, branch="main"
     print(f"Lokaler Ordner {local_folder} enthält {total_files} Dateien.")
     if total_files == 0:
         print("Keine Dateien zum Kopieren gefunden.")
+        status_label.config(text="⚠️ Keine Dateien zum Kopieren gefunden")
+        status_window.update()
+        status_window.after(5000, status_window.destroy)
+        status_window.mainloop()
         return
 
     # Temporären Arbeitsordner anlegen
     with tempfile.TemporaryDirectory() as tmpdir:
         print(f"🕐 Erstelle temporäres Arbeitsverzeichnis: {tmpdir}")
+        status_label.config(text="🕐 Erstelle temporäres Arbeitsverzeichnis...")
+        status_window.update()
 
         # Repository klonen (nur den Zielbranch) und Ausgabe sammeln
+        status_label.config(text="📥 Repository wird geklont...")
+        status_window.update()
         clone = subprocess.run(["git", "clone", "--branch", branch, "--depth", "1", repo_auth, tmpdir], capture_output=True, text=True)
         print("git clone stdout:")
         print(clone.stdout)
         if clone.returncode != 0:
             print("git clone failed:")
             print(clone.stderr)
+            status_label.config(text="❌ Git clone fehlgeschlagen")
+            status_window.update()
+            status_window.after(5000, status_window.destroy)
+            status_window.mainloop()
             raise RuntimeError("git clone failed")
 
         # Zielordner im Repo bestimmen
@@ -44,6 +74,8 @@ def mirror_to_gitlab(local_folder, repo_url, target_subdir, token, branch="main"
         print("Beispiele (vorher):", repo_files_before[:10])
 
         # Inhalt aus local_folder dorthin kopieren
+        status_label.config(text="📂 Dateien werden kopiert...")
+        status_window.update()
         copied_files = []
         source_rel_paths = set()
         for root, _, files in os.walk(local_folder):
@@ -121,9 +153,15 @@ def mirror_to_gitlab(local_folder, repo_url, target_subdir, token, branch="main"
         print(result.stdout)
         if not result.stdout.strip():
             print("Keine Änderungen zum Commit gefunden.")
+            status_label.config(text="ℹ️ Keine Änderungen zum Commit gefunden")
+            status_window.update()
+            status_window.after(5000, status_window.destroy)
+            status_window.mainloop()
             return
 
         msg = f"Auto sync {datetime.now():%Y-%m-%d %H:%M:%S}"
+        status_label.config(text="💾 Änderungen werden committet...")
+        status_window.update()
         commit = subprocess.run(["git", "commit", "-m", msg], cwd=tmpdir, capture_output=True, text=True)
         print("git commit stdout:")
         print(commit.stdout)
@@ -132,8 +170,14 @@ def mirror_to_gitlab(local_folder, repo_url, target_subdir, token, branch="main"
         print(f"git commit returncode: {commit.returncode}")
         if commit.returncode != 0:
             print("Commit fehlgeschlagen — Abbruch.")
+            status_label.config(text="❌ Commit fehlgeschlagen")
+            status_window.update()
+            status_window.after(5000, status_window.destroy)
+            status_window.mainloop()
             return
 
+        status_label.config(text="📤 Änderungen werden gepusht...")
+        status_window.update()
         push = subprocess.run(["git", "push", "origin", branch], cwd=tmpdir, capture_output=True, text=True)
         print("git push stdout:")
         print(push.stdout)
@@ -142,6 +186,10 @@ def mirror_to_gitlab(local_folder, repo_url, target_subdir, token, branch="main"
         print(f"git push returncode: {push.returncode}")
         if push.returncode != 0:
             print("Push fehlgeschlagen — Abbruch.")
+            status_label.config(text="❌ Push fehlgeschlagen")
+            status_window.update()
+            status_window.after(5000, status_window.destroy)
+            status_window.mainloop()
             return
 
         # Remote HEAD prüfen (kurzer Check), um zu bestätigen, dass Remote den neuen Commit hat
@@ -150,7 +198,11 @@ def mirror_to_gitlab(local_folder, repo_url, target_subdir, token, branch="main"
         print(f"Lokaler HEAD: {local_head.stdout.strip()}")
         print(f"Remote refs/heads/{branch}: {remote.stdout.strip()}")
 
-        print("✅ Synchronisierung abgeschlossen.")
+        # Statusfenster aktualisieren und nach kurzer Zeit schließen
+        status_label.config(text="✅ Synchronisierung erfolgreich abgeschlossen!")
+        status_window.update()
+        status_window.after(3000, status_window.destroy)  # Schließt nach 3 Sekunden
+        status_window.mainloop()
 
 if __name__ == "__main__":
     import os
