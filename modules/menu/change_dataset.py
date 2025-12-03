@@ -602,21 +602,46 @@ def change_dataset(root=None, selected_file=None):
             # Store current editing info
             edit_item = item
             
-            # Create entry widget for editing
-            edit_entry = tk.Entry(tree)
-            edit_entry.place(x=bbox[0], y=bbox[1], width=bbox[2], height=bbox[3])
-            
-            # Set current value
+            # Get current value and property name
             current_value = tree.item(item, 'values')[1]
-            edit_entry.insert(0, current_value)
-            edit_entry.select_range(0, tk.END)
-            edit_entry.focus()
+            property_name = tree.item(item, 'values')[0]
             
-            # Bind events
-            edit_entry.bind('<Escape>', cancel_edit)
-            edit_entry.bind('<Return>', save_edit)
-            #End also when clicking outside
-            edit_entry.bind('<FocusOut>', save_edit)
+            # Check if this is the "is_part_of" field
+            if property_name == 'is_part_of':
+                # Get list of available datasets from metadata_mirror folder
+                metadata_mirror_path = os.path.join(os.path.dirname(__file__), "../../metadata_mirror")
+                available_datasets = []
+                if os.path.exists(metadata_mirror_path):
+                    xml_files = [f for f in os.listdir(metadata_mirror_path) if f.endswith('.xml')]
+                    available_datasets = [os.path.splitext(f)[0] for f in xml_files]
+                
+                # Create combobox widget for editing
+                edit_entry = ttk.Combobox(tree, values=available_datasets)
+                edit_entry.place(x=bbox[0], y=bbox[1], width=bbox[2], height=bbox[3])
+                
+                # Set current value
+                edit_entry.set(current_value)
+                edit_entry.focus()
+                
+                # Bind events
+                edit_entry.bind('<Escape>', cancel_edit)
+                edit_entry.bind('<Return>', save_edit)
+                edit_entry.bind('<FocusOut>', save_edit)
+            else:
+                # Create normal entry widget for editing
+                edit_entry = tk.Entry(tree)
+                edit_entry.place(x=bbox[0], y=bbox[1], width=bbox[2], height=bbox[3])
+                
+                # Set current value
+                edit_entry.insert(0, current_value)
+                edit_entry.select_range(0, tk.END)
+                edit_entry.focus()
+                
+                # Bind events
+                edit_entry.bind('<Escape>', cancel_edit)
+                edit_entry.bind('<Return>', save_edit)
+                #End also when clicking outside
+                edit_entry.bind('<FocusOut>', save_edit)
 
     def cancel_edit(event=None):
         """Cancel editing without saving"""
