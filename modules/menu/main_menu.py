@@ -215,6 +215,32 @@ def main_menu_design(root=None):
         
         if dataset_uri == "blank":
             print("loading empty template")
+            #Read in the template and fill in the dataset_name
+            wb = load_workbook(os.path.join(metadata_tables_path, f"{dataset_name}.xlsx"))
+            ws = wb['metadata']
+            # Find the row with 'has_identifier' and update column B (2nd column)
+            for row in ws.iter_rows():
+                if row[0].value == 'has_identifier':
+                    row[1].value = dataset_name
+                    # Optionally add formatting to the new value
+                    row[1].font = Font(bold=True)
+                    break
+            #Insert current date in "was_issued"
+            for row in ws.iter_rows():
+                if row[0].value == 'was_issued':
+                    current_date = datetime.now().strftime("%Y-%m-%d")
+                    row[1].value = current_date
+                    break
+            #And current date in "was_modified"
+            for row in ws.iter_rows():
+                if row[0].value == 'was_modified':
+                    current_date = datetime.now().strftime("%Y-%m-%d")
+                    row[1].value = current_date
+                    break
+            # Save the file with preserved formatting
+            wb.save(os.path.join(metadata_tables_path, f"{dataset_name}.xlsx"))
+            print("File saved with preserved formatting!")
+
         else:
             print(f"Preparing Template for: {dataset_uri}")
             #Read in the template and fill in the dataset_name and dataset_uri
@@ -232,6 +258,19 @@ def main_menu_design(root=None):
                 if row[0].value == 'has_landing_page':
                     row[1].value = dataset_uri
                     break
+            #Insert current date in "was_issued"
+            for row in ws.iter_rows():
+                if row[0].value == 'was_issued':
+                    current_date = datetime.now().strftime("%Y-%m-%d")
+                    row[1].value = current_date
+                    break
+            #And current date in "was_modified"
+            for row in ws.iter_rows():
+                if row[0].value == 'was_modified':
+                    current_date = datetime.now().strftime("%Y-%m-%d")
+                    row[1].value = current_date
+                    break
+            
             # Save the file with preserved formatting
             wb.save(os.path.join(metadata_tables_path, f"{dataset_name}.xlsx"))
             print("File saved with preserved formatting!")
@@ -265,7 +304,8 @@ def main_menu_design(root=None):
         #Execute the sync function from the sync module
         metadata_mirror_path = os.path.join(os.path.dirname(__file__), f"../../{mtt_config.local_folder}")
         sync.mirror_to_gitlab(metadata_mirror_path, mtt_config.repo_url, mtt_config.target_subdir, mtt_config.token, mtt_config.branch)
-
+        #Show a messagebox while syncing is in progress
+        
     def button5_action():
         '''
         Open the online infrastructure links in the default web browser
