@@ -343,6 +343,7 @@ def change_dataset(root=None, selected_file=None):
             #save file to metadata_mirror folder
             with open(os.path.join(os.path.dirname(__file__), f"../../metadata_mirror/{filename}.xml"), 'w', encoding='utf-8') as f:
                 f.write(formatted_xml)
+            messagebox.showinfo("Success", f"XML file '{filename}.xml' created successfully in metadata_mirror folder.")
 
     def delete_metadata():
         print("Delete Dataset button clicked")
@@ -414,6 +415,16 @@ def change_dataset(root=None, selected_file=None):
     current_file_name = os.path.splitext(os.path.basename(current_file_path))[0]
     df_current_data = pd.read_excel(current_file_path)
     df_current_data.at[1, "Metadata Value"] = current_file_name
+    todays_date = pd.Timestamp.now().strftime("%Y-%m-%d")
+    df_current_data.at[5, "Metadata Value"] = todays_date
+    
+    # Save the identifier and date updates to Excel with formatting
+    updates_to_save = {
+        df_current_data.at[1, "Metadata Property"]: current_file_name,
+        df_current_data.at[5, "Metadata Property"]: todays_date
+    }
+    batch_save_to_excel_with_formatting(updates_to_save)
+
     
     #ToDo Listbox in Zeile 8 - Show missing values
     scrollbar_frame = tk.Frame(newdatamenu)
