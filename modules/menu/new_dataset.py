@@ -348,6 +348,14 @@ def new_dataset(root=None):
             with open(os.path.join(os.path.dirname(__file__), f"../../metadata_mirror/{filename}.xml"), 'w', encoding='utf-8') as f:
                 f.write(formatted_xml)
             messagebox.showinfo("Success", f"XML file {filename}.xml has been created successfully in metadata_mirror folder.")
+            #set metadata_status in log file to converted for this record
+            log_tables_path = os.path.join(os.path.dirname(__file__), "../../metadata_tables")
+            log_file_path = os.path.join(log_tables_path, "log.xlsx")
+            if os.path.exists(log_file_path):
+                df_log = pd.read_excel(log_file_path)
+                identifier = df_current_data.loc[df_current_data['Metadata Property'] == 'has_identifier', 'Metadata Value'].values[0]
+                df_log.loc[df_log['identifier'] == identifier, 'metadata_status'] = 'converted'
+                df_log.to_excel(log_file_path, index=False)
 
     def show_xml():
         print("Opening most current XML file...")
@@ -411,7 +419,7 @@ def new_dataset(root=None):
     metadata_files = [f for f in os.listdir(metadata_tables_path) if os.path.isfile(os.path.join(metadata_tables_path, f))]
     
     # Filter for relevant files and get the most recent one
-    relevant_files = [f for f in metadata_files]
+    relevant_files = [f for f in metadata_files if "log" not in f and "registered_persons" not in f and f.endswith('.xlsx')]
     most_recent_file = max(relevant_files, key=lambda f: os.path.getmtime(os.path.join(metadata_tables_path, f)))
     current_file_path = os.path.join(metadata_tables_path, most_recent_file)
     current_file_name = os.path.splitext(os.path.basename(current_file_path))[0]
@@ -502,6 +510,15 @@ def new_dataset(root=None):
             for field in mandatory_fields:
                 if field not in current_properties or pd.isna(current_values.get(field)) or str(current_values.get(field)).strip() == 'not_defined':
                     missing_items.append(f"🔴 MANDATORY: {field}")
+                else:
+                    #set metadata_status in log file to completed for this record
+                    log_tables_path = os.path.join(os.path.dirname(__file__), "../../metadata_tables")
+                    log_file_path = os.path.join(log_tables_path, "log.xlsx")
+                    if os.path.exists(log_file_path):
+                        df_log = pd.read_excel(log_file_path)
+                        identifier = current_values.get('has_identifier')
+                        df_log.loc[df_log['identifier'] == identifier, 'metadata_status'] = 'completed'
+                        df_log.to_excel(log_file_path, index=False)
             
             # Check desirable fields
             for field in desirable_fields:
@@ -621,6 +638,35 @@ def new_dataset(root=None):
                 edit_entry.bind('<Escape>', cancel_edit)
                 edit_entry.bind('<Return>', save_edit)
                 edit_entry.bind('<FocusOut>', save_edit)
+            elif property_name == 'has_ariadne_subject':
+                # Create combobox widget for editing with predefined subjects
+                predefined_subjects = [
+                    "Artefact",
+                    "Building suryvey",
+                    "Burial",
+                    "Coin",
+                    "Date",
+                    "E-publication",
+                    "Fieldwork",
+                    "Fieldwork archive",
+                    "Fieldwork report",
+                    "Inscription",
+                    "Maritime",
+                    "Rock Art",
+                    "Scientific analysis",
+                    "Site/monument"
+                ]
+                edit_entry = ttk.Combobox(tree, values=predefined_subjects)
+                edit_entry.place(x=bbox[0], y=bbox[1], width=bbox[2], height=bbox[3])
+                
+                # Set current value
+                edit_entry.set(current_value)
+                edit_entry.focus()
+                
+                # Bind events
+                edit_entry.bind('<Escape>', cancel_edit)
+                edit_entry.bind('<Return>', save_edit)
+                edit_entry.bind('<FocusOut>', save_edit)
             else:
                 # Create normal entry widget for editing
                 edit_entry = tk.Entry(tree)
@@ -667,8 +713,10 @@ def new_dataset(root=None):
     def open_documentation():
         """Open the documentation in a web browser"""
         #The file is /documentation/MTT_Readme.html
-        doc_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../documentation/MTT_Readme.html"))
-        webbrowser.open_new(f"file:///{doc_path.replace(os.sep, '/')}")
+        doc_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../documentation/SPP 2143_Metadata_Standard_Documentation.html"))
+        doc_path2 = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../documentation/MTT_Readme.html"))
+        webbrowser.open(f"file:///{doc_path2.replace(os.sep, '/')}")
+        webbrowser.open(f"file:///{doc_path.replace(os.sep, '/')}")
 
 
 
