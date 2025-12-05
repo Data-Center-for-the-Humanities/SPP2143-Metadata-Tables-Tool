@@ -344,6 +344,14 @@ def change_dataset(root=None, selected_file=None):
             with open(os.path.join(os.path.dirname(__file__), f"../../metadata_mirror/{filename}.xml"), 'w', encoding='utf-8') as f:
                 f.write(formatted_xml)
             messagebox.showinfo("Success", f"XML file '{filename}.xml' created successfully in metadata_mirror folder.")
+            #set metadata_status in log file to converted for this record
+            log_tables_path = os.path.join(os.path.dirname(__file__), "../../metadata_tables")
+            log_file_path = os.path.join(log_tables_path, "log.xlsx")
+            if os.path.exists(log_file_path):
+                df_log = pd.read_excel(log_file_path)
+                identifier = df_current_data.loc[df_current_data['Metadata Property'] == 'has_identifier', 'Metadata Value'].values[0]
+                df_log.loc[df_log['identifier'] == identifier, 'metadata_status'] = 'converted'
+                df_log.to_excel(log_file_path, index=False)
 
     def delete_metadata():
         print("Delete Dataset button clicked")
@@ -508,6 +516,15 @@ def change_dataset(root=None, selected_file=None):
             for field in mandatory_fields:
                 if field not in current_properties or pd.isna(current_values.get(field)) or str(current_values.get(field)).strip() == 'not_defined':
                     missing_items.append(f"🔴 MANDATORY: {field}")
+                else:
+                    #set metadata_status in log file to completed for this record
+                    log_tables_path = os.path.join(os.path.dirname(__file__), "../../metadata_tables")
+                    log_file_path = os.path.join(log_tables_path, "log.xlsx")
+                    if os.path.exists(log_file_path):
+                        df_log = pd.read_excel(log_file_path)
+                        identifier = current_values.get('has_identifier')
+                        df_log.loc[df_log['identifier'] == identifier, 'metadata_status'] = 'completed'
+                        df_log.to_excel(log_file_path, index=False)
             
             # Check desirable fields
             for field in desirable_fields:
@@ -617,6 +634,35 @@ def change_dataset(root=None, selected_file=None):
                 
                 # Create combobox widget for editing
                 edit_entry = ttk.Combobox(tree, values=available_datasets)
+                edit_entry.place(x=bbox[0], y=bbox[1], width=bbox[2], height=bbox[3])
+                
+                # Set current value
+                edit_entry.set(current_value)
+                edit_entry.focus()
+                
+                # Bind events
+                edit_entry.bind('<Escape>', cancel_edit)
+                edit_entry.bind('<Return>', save_edit)
+                edit_entry.bind('<FocusOut>', save_edit)
+            elif property_name == 'has_ariadne_subject':
+                # Create combobox widget for editing with predefined subjects
+                predefined_subjects = [
+                    "Artefact",
+                    "Building suryvey",
+                    "Burial",
+                    "Coin",
+                    "Date",
+                    "E-publication",
+                    "Fieldwork",
+                    "Fieldwork archive",
+                    "Fieldwork report",
+                    "Inscription",
+                    "Maritime",
+                    "Rock Art",
+                    "Scientific analysis",
+                    "Site/monument"
+                ]
+                edit_entry = ttk.Combobox(tree, values=predefined_subjects)
                 edit_entry.place(x=bbox[0], y=bbox[1], width=bbox[2], height=bbox[3])
                 
                 # Set current value
