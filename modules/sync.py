@@ -1,6 +1,157 @@
+def process_xml_relationships(local_folder, target_path, xml_extension=".xml"):
+    """
+    Verarbeitet XML-Dateien und erstellt gegenseitige dct:isPartOf / dct:hasPart Beziehungen.
+    
+    Wenn eine Datei einen dct:isPartOf Tag enthält:
+    1. Wird die dort genannte Datei geladen (ohne Endung im Tag)
+    2. Wird der ursprünglichen Datei ein dct:hasPart Tag hinzugefügt (auch ohne Endung)
+    3. dct:hasPart wird auf der gleichen Ebene wie dct:isPartOf eingefügt
+    4. Änderungen werden sowohl im local_folder als auch in target_path vorgenommen
+    
+    Beispiel:
+    - Datei A.xml (dct:isPartOf="B") → Datei B.xml wird geladen
+    - Datei B.xml erhält: dct:hasPart="A" neben anderen dct:* Tags
+    """
+    import xml.etree.ElementTree as ET
+    
+    # Finde alle XML-Dateien (Map: Dateiname ohne Ext -> Dateipfad)
+    xml_files_local = {}
+    xml_files_target = {}
+    file_to_basename = {}
+    
+    # Local folder
+    for root, _, files in os.walk(local_folder):
+        for file_name in files:
+            if file_name.endswith(xml_extension):
+                file_path = os.path.join(root, file_name)
+                basename_no_ext = os.path.splitext(file_name)[0]
+                xml_files_local[basename_no_ext] = file_path
+                file_to_basename[basename_no_ext] = file_name
+    
+    # Target path (Repo)
+    for root, _, files in os.walk(target_path):
+        for file_name in files:
+            if file_name.endswith(xml_extension):
+                file_path = os.path.join(root, file_name)
+                basename_no_ext = os.path.splitext(file_name)[0]
+                xml_files_target[basename_no_ext] = file_path
+    
+    if not xml_files_local and not xml_files_target:
+        print(f"Keine XML-Dateien gefunden.")
+        return
+    
+    print(f"🔗 Verarbeite XML-Dateien für dct:isPartOf/dct:hasPart Beziehungen...")
+    
+    # Namespaces definieren und registrieren
+    namespaces = {
+        'oai_dc': 'http://www.openarchives.org/OAI/2.0/oai_dc/',
+        'crm':'http://www.cidoc-crm.org/cidoc-crm/',
+        'dc': 'http://purl.org/dc/elements/1.1/',
+        'dct': 'http://purl.org/dc/terms/',
+        'foaf': 'http://xmlns.com/foaf/0.1/',
+        'geo': 'http://www.w3.org/2003/01/geo/wgs84_pos#',
+        'dch': 'http://oai.dch.phil-fak.uni-koeln.de/',
+        'owl': 'http://www.w3.org/2002/07/owl#',
+        'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+        'rdfs': 'http://www.w3.org/2000/01/rdf-schema#'
+    }
+    
+    for prefix, uri in namespaces.items():
+        ET.register_namespace(prefix, uri)
+    
+    # Verarbeite Dateien aus local_folder
+    for basename_no_ext, file_path in xml_files_local.items():
+        try:
+            tree = ET.parse(file_path)
+            root_elem = tree.getroot()
+            
+            # Finde den oai_dc:dc Element
+            oai_dc_ns = namespaces['oai_dc']
+            dc_elem = root_elem.find(f'{{{oai_dc_ns}}}dc')
+            if dc_elem is None:
+                dc_elem = root_elem
+            
+            # Suche dct:isPartOf Tags
+            dct_ns = namespaces['dct']
+            is_part_of_elems = dc_elem.findall(f'{{{dct_ns}}}isPartOf')
+            
+            if is_part_of_elems:
+                for is_part_of_elem in is_part_of_elems:
+                    referenced_basename_no_ext = None
+                    
+                    if is_part_of_elem.text and is_part_of_elem.text.strip():
+                        referenced_basename_no_ext = is_part_of_elem.text.strip()
+                    elif '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource' in is_part_of_elem.attrib:
+                        referenced_basename_no_ext = is_part_of_elem.attrib['{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource']
+                    
+                    if referenced_basename_no_ext and referenced_basename_no_ext in xml_files_local:
+                        print(f"  ✓ {basename_no_ext} ist Teil von {referenced_basename_no_ext}")
+                        
+                        # Verarbeite beide Orte: local_folder und target_path
+                        for file_dict in [xml_files_local, xml_files_target]:
+                            if referenced_basename_no_ext not in file_dict:
+                                continue
+                            
+                            ref_file_path = file_dict[referenced_basename_no_ext]
+                            try:
+                                ref_tree = ET.parse(ref_file_path)
+                                ref_root = ref_tree.getroot()
+                                
+                                ref_dc_elem = ref_root.find(f'{{{oai_dc_ns}}}dc')
+                                if ref_dc_elem is None:
+                                    ref_dc_elem = ref_root
+                                
+                                # Prüfe, ob dct:hasPart bereits existiert
+                                existing_has_part = ref_dc_elem.findall(f'{{{dct_ns}}}hasPart')
+                                has_existing = False
+                                
+                                for has_part_elem in existing_has_part:
+                                    has_part_text = has_part_elem.text or has_part_elem.attrib.get('{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource', '')
+                                    if has_part_text == basename_no_ext:
+                                        has_existing = True
+                                        break
+                                
+                                if not has_existing:
+                                    # Erstelle neuen dct:hasPart Tag direkt nach dct:isPartOf
+                                    new_has_part = ET.Element(f'{{{dct_ns}}}hasPart')
+                                    
+                                    # Kopiere Struktur von dct:isPartOf
+                                    if is_part_of_elem.text:
+                                        new_has_part.text = basename_no_ext
+                                    else:
+                                        new_has_part.attrib['{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource'] = basename_no_ext
+                                    
+                                    # Finde die Position von dct:isPartOf und füge danach ein
+                                    # Oder am Ende der dct: Tags
+                                    is_part_of_index = None
+                                    for idx, child in enumerate(ref_dc_elem):
+                                        if child.tag == f'{{{dct_ns}}}isPartOf':
+                                            is_part_of_index = idx
+                                            break
+                                    
+                                    if is_part_of_index is not None:
+                                        ref_dc_elem.insert(is_part_of_index + 1, new_has_part)
+                                    else:
+                                        ref_dc_elem.append(new_has_part)
+                                    
+                                    ref_tree.write(ref_file_path, encoding='utf-8', xml_declaration=True)
+                                    
+                                    location = "local" if file_dict == xml_files_local else "repo"
+                                    print(f"    ➜ Hinzugefügt: dct:hasPart '{basename_no_ext}' zu {referenced_basename_no_ext} ({location})")
+                            
+                            except ET.ParseError as e:
+                                print(f"    ❌ Fehler beim Parsen von {referenced_basename_no_ext}: {e}")
+        
+        except ET.ParseError as e:
+            print(f"⚠️ Fehler beim Parsen von {file_path}: {e}")
+        except Exception as e:
+            print(f"⚠️ Fehler bei der Verarbeitung von {basename_no_ext}: {e}")
+
+
 def mirror_to_gitlab(local_folder, repo_url, target_subdir, token, branch="main"):
     """
     Spiegelt einen lokalen Ordner in einen Unterordner eines GitLab-Repos per temporärem Git-Repo.
+    Bearbeitet XML-Dateien und erstellt gegenseitige dct:isPartOf/dct:hasPart Beziehungen.
     """
     import tkinter as tk
     
@@ -93,6 +244,11 @@ def mirror_to_gitlab(local_folder, repo_url, target_subdir, token, branch="main"
                 copied_files.append(dest_file)
 
         print(f"Kopiert {len(copied_files)} Dateien nach {target_path} (Beispiele: {copied_files[:5] if copied_files else []})")
+
+        # --- Bearbeite XML-Dateien für gegenseitige dct:isPartOf/dct:hasPart Beziehungen ---
+        status_label.config(text="🔗 XML-Beziehungen werden verarbeitet...")
+        status_window.update()
+        process_xml_relationships(local_folder, target_path)
 
         # --- Synchronisation: entferne Dateien im Repo, die nicht mehr in source vorhanden sind ---
         repo_rel_paths = set()
@@ -223,3 +379,4 @@ else:
     import subprocess
     import tempfile
     from datetime import datetime
+    import xml.etree.ElementTree as ET
