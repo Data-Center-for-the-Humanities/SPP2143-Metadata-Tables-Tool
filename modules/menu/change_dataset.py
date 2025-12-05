@@ -719,8 +719,10 @@ def change_dataset(root=None, selected_file=None):
     def open_documentation():
         """Open the documentation in a web browser"""
         #The file is /documentation/MTT_Readme.html
-        doc_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../documentation/MTT_Readme.html"))
-        webbrowser.open_new(f"file:///{doc_path.replace(os.sep, '/')}")
+        doc_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../documentation/SPP 2143_Metadata_Standard_Documentation.html"))
+        doc_path2 = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../documentation/MTT_Readme.html"))
+        webbrowser.open(f"file:///{doc_path2.replace(os.sep, '/')}")
+        webbrowser.open(f"file:///{doc_path.replace(os.sep, '/')}")
 
 
 
