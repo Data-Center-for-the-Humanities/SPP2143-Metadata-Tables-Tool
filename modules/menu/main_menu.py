@@ -275,6 +275,21 @@ def main_menu_design(root=None):
             wb.save(os.path.join(metadata_tables_path, f"{dataset_name}.xlsx"))
             print("File saved with preserved formatting!")
 
+        #Insert the filename into the log.xlsx with status "created"
+        log_xlsx = os.path.join(metadata_tables_path, "log.xlsx")
+        try:
+            if os.path.exists(log_xlsx):
+                wb_log = load_workbook(log_xlsx)
+                ws_log = wb_log['metadata_status']
+                # Find the next empty row
+                next_row = ws_log.max_row + 1
+                ws_log.cell(row=next_row, column=1, value=f"{dataset_name}.xlsx")  # Assuming filename is dataset_name.xlsx
+                ws_log.cell(row=next_row, column=2, value="created")
+                wb_log.save(log_xlsx)
+                print("Log updated with new dataset entry.")
+        except Exception as e:
+            print(f"Could not update log.xlsx: {e}")
+
         mainmenu.destroy()  # Schließt das Hauptfenster
         new_dataset.new_dataset()
     
@@ -359,6 +374,26 @@ def main_menu_design(root=None):
 
     
     #Data Selector in Zeile 8
+
+    # Prepare status icons from df_log (identifier, status)
+    metadata_tables_path = os.path.join(os.path.dirname(__file__), "../../metadata_tables")
+    status_by_identifier = {}
+    try:
+        log_xlsx = os.path.join(metadata_tables_path, "log.xlsx")
+        log_csv = os.path.join(metadata_tables_path, "log.csv")
+        df_log = None
+        if os.path.exists(log_xlsx):
+            try:
+                df_log = pd.read_excel(log_xlsx, sheet_name="metadata_status")
+            except Exception:
+                df_log = pd.read_excel(log_xlsx)
+        elif os.path.exists(log_csv):
+            df_log = pd.read_csv(log_csv)
+        if df_log is not None and 'identifier' in df_log.columns and 'status' in df_log.columns:
+            status_by_identifier = {str(row['identifier']).strip(): str(row['status']).strip() for _, row in df_log.iterrows()}
+    except Exception as e:
+        print(f"Could not load df_log: {e}")
+
     scrollbar_frame = tk.Frame(mainmenu)
     scrollbar_frame.grid(row=7, column=0, pady=10, padx=15, sticky="w")
 
@@ -370,12 +405,22 @@ def main_menu_design(root=None):
     value_list = tk.Listbox(scrollbar_frame, yscrollcommand=scrollbar.set, width=40, height=15)
     #for i in range(100):
         #value_list.insert(tk.END, str(i))
-    #List all files in metadata_tables
-    metadata_tables_path = os.path.join(os.path.dirname(__file__), "../../metadata_tables")
+    # List all files in metadata_tables with status icon
     metadata_files = [f for f in os.listdir(metadata_tables_path) if os.path.isfile(os.path.join(metadata_tables_path, f))]
+    status_icon = {
+        'created': '❌',
+        'completed': '⭕',
+        'converted': '🟣',
+        'mirrored': '✔️'
+    }
     for file in metadata_files:
-        if "log" not in file and "registered_persons" not in file and file.endswith('.xlsx'):
-            value_list.insert(tk.END, file)
+        if "log" in file or "registered_persons" in file or not file.endswith('.xlsx'):
+            continue
+        identifier_no_ext = os.path.splitext(file)[0]
+        status = status_by_identifier.get(file) or status_by_identifier.get(identifier_no_ext)
+        icon = status_icon.get(str(status).lower(), '') if status else ''
+        display_text = f"{icon} {file}" if icon else file
+        value_list.insert(tk.END, display_text)
 
     value_list.grid(row=0, column=0, sticky='nsew')
     scrollbar.config(command=value_list.yview)
@@ -383,8 +428,15 @@ def main_menu_design(root=None):
 
     #Selected file in value_list to dataframe and display in the data viewer
     # This function will be called when an item in the listbox is selected
+    def _strip_icon(text):
+        for ic in ['🟡', '🟢', '📄', '📤']:
+            if text.startswith(ic + ' '):
+                return text[len(ic) + 1:]
+        return text
+
     def on_select(event):
         selected_file = value_list.get(value_list.curselection())
+        selected_file = _strip_icon(selected_file)
         file_path = os.path.join(metadata_tables_path, selected_file)
         df = pd.read_excel(file_path, sheet_name="metadata")  # Assuming the files are Excel files
         df = df.fillna('not_defined')  # Fill NaN values with empty strings
@@ -447,6 +499,8 @@ def main_menu_design(root=None):
     open_config_button = tk.Button(mainmenu, text="Open Configuration", command=open_config, width=25, height=1, bg="light green", fg="white", font=("Helvetica", 10, "bold"))
     open_config_button.grid(row=8, column=0, columnspan=2, padx=10, pady=5, sticky="e")
 
+
+
 if __name__ == "__main__":
     import tkinter as tk
     from tkinter import ttk
@@ -481,5 +535,3 @@ else:
     from datetime import datetime
     import shutil
     import webbrowser
-
-
