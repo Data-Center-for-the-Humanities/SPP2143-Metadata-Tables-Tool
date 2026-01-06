@@ -32,8 +32,8 @@ df_registered_persons = pd.read_excel(os.path.join(metadata_tables_path, "regist
 
 #Createe XML Namespace section
 
-header = '<record><oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:crm="http://www.cidoc-crm.org/cidoc-crm/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dct="http://purl.org/dc/terms/" xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:dch="http://oai.dch.phil-fak.uni-koeln.de/" xmlns:owl ="http://www.w3.org/2002/07/owl#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">'
-footer = '</oai_dc:dc></record>'
+header = '<oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:crm="http://www.cidoc-crm.org/cidoc-crm/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dct="http://purl.org/dc/terms/" xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:dch="http://oai.dch.phil-fak.uni-koeln.de/" xmlns:owl ="http://www.w3.org/2002/07/owl#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">'
+footer = '</oai_dc:dc>'
 
 #Check string for invalid characters
 def check_string(valuesting):
