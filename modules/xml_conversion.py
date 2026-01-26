@@ -146,7 +146,6 @@ def get_issued(dict):
     if value == 'not_defined':
         value = '<crm:P81_ongoing_through />'
     else:
-        value = check_string(value)
         value = f'<crm:P81_ongoing_through>{value}</crm:P81_ongoing_through>'
     return value
 
@@ -157,7 +156,6 @@ def get_modified(dict):
     if value == 'not_defined':
         value = '<dch:was_modified />'
     else:
-        value = check_string(value)
         value = f'<dch:was_modified>{value}</dch:was_modified>'
     return value
 
@@ -276,7 +274,6 @@ def get_created_on(dict):
     if value == 'not_defined':
         value = '<dct:created />'
     else:
-        value = check_string(value)
         value = f'<dct:created>{value}</dct:created>'
     return value
 
