@@ -4,6 +4,7 @@
 
 #get country name from wikidata api
 def get_country_name(wikidata_code):
+    wikidata_code = wikidata_code.upper()
     url = f"https://query.wikidata.org/sparql?query=SELECT%20%3Fcountry%20%3FcountryLabel%20WHERE%20%7B%20%3Fcountry%20wdt%3AP298%20%22{wikidata_code}%22%20.%20SERVICE%20wikibase%3Alabel%20%7B%20bd%3AserviceParam%20wikibase%3Alanguage%20%22en%22%20%7D%20%7D&format=json"
     response = requests.get(url)
     if response.status_code == 200:
