@@ -1,3 +1,6 @@
+import os
+
+
 def set_window_icon(window):
     """Helper function to set the custom icon for any tkinter window"""
     try:
@@ -325,7 +328,66 @@ def main_menu_design(root=None):
         metadata_mirror_path = os.path.join(os.path.dirname(__file__), f"../../{mtt_config.local_folder}")
         sync.mirror_to_gitlab(metadata_mirror_path, mtt_config.repo_url, mtt_config.target_subdir, mtt_config.token, mtt_config.branch)
         #Show a messagebox while syncing is in progress
-        
+        #get a list of all files in the metadata_mirror
+        mirror_files = []
+        try:
+            mirror_files = [f for f in os.listdir(metadata_mirror_path) if os.path.isfile(os.path.join(metadata_mirror_path, f))]
+        except Exception as e:
+            print(f"Could not load metadata mirror files: {e}")
+        #remove the file extension from the filenames in mirror_files
+        mirror_files = [os.path.splitext(f)[0] for f in mirror_files]
+        #set status in log.xlsx to "mirrored" for all files in the metadata_mirror
+        log_xlsx = os.path.join(os.path.dirname(__file__), "../../metadata_tables/log.xlsx")
+        try:
+            if os.path.exists(log_xlsx):
+                wb_log = load_workbook(log_xlsx)
+                ws_log = wb_log['Sheet1']
+                for row in ws_log.iter_rows(min_row=2):  # Assuming the first row is a header
+                    filename_cell = row[0]  # Assuming the filename is in the first column
+                    status_cell = row[1]    # Assuming the status is in the second column
+                    if filename_cell.value in mirror_files:
+                        status_cell.value = "mirrored"
+                wb_log.save(log_xlsx)
+                print("Log updated with mirrored status.")
+        except Exception as e:
+            print(f"Could not update log.xlsx: {e}")
+        #refresh the value_list to show the updated status icons
+        value_list.delete(0, tk.END)
+        #List all files in metadata_tables with status icon
+        metadata_tables_path = os.path.join(os.path.dirname(__file__), "../../metadata_tables")
+        status_by_identifier = {}
+        try:
+            log_xlsx = os.path.join(metadata_tables_path, "log.xlsx")
+            log_csv = os.path.join(metadata_tables_path, "log.csv")
+            df_log = None
+            if os.path.exists(log_xlsx):
+                try:
+                    df_log = pd.read_excel(log_xlsx, sheet_name="Sheet1")
+                except Exception:
+                    df_log = pd.read_excel(log_xlsx)
+            elif os.path.exists(log_csv):
+                df_log = pd.read_csv(log_csv)
+            if df_log is not None and 'identifier' in df_log.columns and 'metadata_status' in df_log.columns:
+                status_by_identifier = {str(row['identifier']).strip(): str(row['metadata_status']).strip() for _, row in df_log.iterrows()}
+        except Exception as e:
+            print(f"Could not load df_log: {e}")
+        metadata_files = [f for f in os.listdir(metadata_tables_path) if os.path.isfile(os.path.join(metadata_tables_path, f))]
+        status_icon = {
+            'created': '❌',
+            'completed': '⭕',
+            'converted': '🟣',
+            'mirrored': '✔️'
+        }
+        for file in metadata_files:
+            if "log" in file or "registered_persons" in file or not file.endswith('.xlsx'):
+                continue
+            identifier_no_ext = os.path.splitext(file)[0]
+            status = status_by_identifier.get(file) or status_by_identifier.get(identifier_no_ext)
+            icon = status_icon.get(str(status).lower(), '') if status else ''
+            display_text = f"{icon} {file}" if icon else file
+            value_list.insert(tk.END, display_text)
+            display_to_file[display_text] = file
+
     def button5_action():
         '''
         Open the online infrastructure links in the default web browser
