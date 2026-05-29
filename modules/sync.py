@@ -154,14 +154,28 @@ def mirror_to_gitlab(local_folder, repo_url, target_subdir, token, branch="main"
     Bearbeitet XML-Dateien und erstellt gegenseitige dct:isPartOf/dct:hasPart Beziehungen.
     """
     import tkinter as tk
-    
-    # Statusfenster erstellen
-    status_window = tk.Tk()
+
+    # Statusfenster im bestehenden Tk-Event-Loop erzeugen, damit der Aufruf nicht blockiert.
+    parent_window = tk._default_root
+    if parent_window is not None:
+        status_window = tk.Toplevel(parent_window)
+        status_window.transient(parent_window)
+    else:
+        status_window = tk.Tk()
     status_window.title("Synchronisierung")
     status_window.geometry("400x100")
     status_label = tk.Label(status_window, text="🚀 Synchronisierung wird gestartet...", font=("Arial", 12), pady=20)
     status_label.pack()
+    if parent_window is not None:
+        status_window.lift()
+    status_window.update_idletasks()
     status_window.update()
+
+    def close_status_window(delay_ms=0):
+        if delay_ms:
+            status_window.after(delay_ms, status_window.destroy)
+        else:
+            status_window.destroy()
     
     # Token in HTTPS-URL einbetten
     if repo_url.startswith("https://"):
@@ -169,8 +183,7 @@ def mirror_to_gitlab(local_folder, repo_url, target_subdir, token, branch="main"
     else:
         status_label.config(text="❌ Fehler: Repo-URL muss mit 'https://' beginnen")
         status_window.update()
-        status_window.after(5000, status_window.destroy)
-        status_window.mainloop()
+        close_status_window(5000)
         raise ValueError("Repo-URL muss mit 'https://' beginnen")
 
     # Prüfen, ob local_folder existiert und Dateien enthält
@@ -178,8 +191,7 @@ def mirror_to_gitlab(local_folder, repo_url, target_subdir, token, branch="main"
         print(f"Lokaler Ordner nicht gefunden: {local_folder}")
         status_label.config(text=f"❌ Lokaler Ordner nicht gefunden: {local_folder}")
         status_window.update()
-        status_window.after(5000, status_window.destroy)
-        status_window.mainloop()
+        close_status_window(5000)
         return
     total_files = 0
     for _, _, files in os.walk(local_folder):
@@ -189,8 +201,7 @@ def mirror_to_gitlab(local_folder, repo_url, target_subdir, token, branch="main"
         print("Keine Dateien zum Kopieren gefunden.")
         status_label.config(text="⚠️ Keine Dateien zum Kopieren gefunden")
         status_window.update()
-        status_window.after(5000, status_window.destroy)
-        status_window.mainloop()
+        close_status_window(5000)
         return
 
     # Temporären Arbeitsordner anlegen
@@ -210,8 +221,7 @@ def mirror_to_gitlab(local_folder, repo_url, target_subdir, token, branch="main"
             print(clone.stderr)
             status_label.config(text="❌ Git clone fehlgeschlagen")
             status_window.update()
-            status_window.after(5000, status_window.destroy)
-            status_window.mainloop()
+            close_status_window(5000)
             raise RuntimeError("git clone failed")
 
         # Zielordner im Repo bestimmen
@@ -311,8 +321,7 @@ def mirror_to_gitlab(local_folder, repo_url, target_subdir, token, branch="main"
             print("Keine Änderungen zum Commit gefunden.")
             status_label.config(text="ℹ️ Keine Änderungen zum Commit gefunden")
             status_window.update()
-            status_window.after(5000, status_window.destroy)
-            status_window.mainloop()
+            close_status_window(5000)
             return
 
         msg = f"Auto sync {datetime.now():%Y-%m-%d %H:%M:%S}"
@@ -328,8 +337,7 @@ def mirror_to_gitlab(local_folder, repo_url, target_subdir, token, branch="main"
             print("Commit fehlgeschlagen — Abbruch.")
             status_label.config(text="❌ Commit fehlgeschlagen")
             status_window.update()
-            status_window.after(5000, status_window.destroy)
-            status_window.mainloop()
+            close_status_window(5000)
             return
 
         status_label.config(text="📤 Änderungen werden gepusht...")
@@ -344,8 +352,7 @@ def mirror_to_gitlab(local_folder, repo_url, target_subdir, token, branch="main"
             print("Push fehlgeschlagen — Abbruch.")
             status_label.config(text="❌ Push fehlgeschlagen")
             status_window.update()
-            status_window.after(5000, status_window.destroy)
-            status_window.mainloop()
+            close_status_window(5000)
             return
 
         # Remote HEAD prüfen (kurzer Check), um zu bestätigen, dass Remote den neuen Commit hat
@@ -357,8 +364,7 @@ def mirror_to_gitlab(local_folder, repo_url, target_subdir, token, branch="main"
         # Statusfenster aktualisieren und nach kurzer Zeit schließen
         status_label.config(text="✅ Synchronisierung erfolgreich abgeschlossen!")
         status_window.update()
-        status_window.after(3000, status_window.destroy)  # Schließt nach 3 Sekunden
-        status_window.mainloop()
+        close_status_window(3000)
 
 if __name__ == "__main__":
     import os
