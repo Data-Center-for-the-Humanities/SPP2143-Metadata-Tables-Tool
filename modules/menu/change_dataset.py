@@ -1,3 +1,6 @@
+from shapely import box
+
+
 def set_window_icon(window):
     """Helper function to set the custom icon for any tkinter window"""
     try:
@@ -291,28 +294,113 @@ def change_dataset(root=None, selected_file=None):
         finally:
             wait_win.destroy()
         return df_current_data
+    
+
 
 
     def save_edit(event=None):
         """Save the edited value"""
-        nonlocal edit_item, edit_entry
-        
-        if edit_entry and edit_item:
+        nonlocal edit_item, edit_entry, df_current_data, pending_changes
+        updates_to_save = dict(pending_changes)
+
+        # If we have an active edit, apply it first so derived values use current data.
+        if edit_entry and edit_item and edit_entry.winfo_exists():
             new_value = edit_entry.get()
             old_values = tree.item(edit_item, 'values')
-            tree.item(edit_item, values=(old_values[0], new_value))
-            
-            # Update the DataFrame and save to Excel with formatting
             property_name = old_values[0]
+
+            # Update tree and DataFrame
+            tree.item(edit_item, values=(property_name, new_value))
             df_current_data.loc[df_current_data['Metadata Property'] == property_name, 'Metadata Value'] = new_value
+
+            updates_to_save[property_name] = new_value
+
+        # Recalculate derived point country code using the latest latitude/longitude values.
+        longitude = df_current_data.loc[df_current_data['Metadata Property'] == 'has_longitude', 'Metadata Value'].values
+        latitude = df_current_data.loc[df_current_data['Metadata Property'] == 'has_latitude', 'Metadata Value'].values
+        print(f"Longitude: {longitude}")
+        print(f"Latitude: {latitude}")
+
+        if (
+            len(longitude) > 0 and len(latitude) > 0 and
+            str(longitude[0]).strip().lower() != 'nan' and str(latitude[0]).strip().lower() != 'nan' and
+            str(longitude[0]).strip() != '' and str(latitude[0]).strip() != ''
+        ):
+            try:
+                codes = country_codes.countries_from_wkt(
+                    country_codes.create_wkt_from_point_coordinates(latitude, longitude)
+                )
+                df_current_data.loc[
+                    df_current_data['Metadata Property'] == 'point_has_country_code',
+                    'Metadata Value'
+                ] = codes
+                updates_to_save['point_has_country_code'] = codes
+                print(f"Country codes updated: {codes}")
+            except Exception as e:
+                print(f"Error retrieving country codes: {e}")
+        if updates_to_save:
+            batch_save_to_excel_with_formatting(updates_to_save)
             
-            # Use the shared formatting function
-            save_to_excel_with_formatting(property_name, new_value)
-                
-            # Refresh the missing values list after saving
-            update_missing_values_list()
+
+        # Recalculate derived point country code using the latest bounding box values.
+        min_lat = df_current_data.loc[df_current_data['Metadata Property'] == 'has_bounding_box_min_lat', 'Metadata Value'].values
+        min_lon = df_current_data.loc[df_current_data['Metadata Property'] == 'has_bounding_box_min_lon', 'Metadata Value'].values
+        max_lat = df_current_data.loc[df_current_data['Metadata Property'] == 'has_bounding_box_max_lat', 'Metadata Value'].values
+        max_lon = df_current_data.loc[df_current_data['Metadata Property'] == 'has_bounding_box_max_lon', 'Metadata Value'].values
+
+        if (
+            len(min_lat) > 0 and len(min_lon) > 0 and len(max_lat) > 0 and len(max_lon) > 0 and
+            str(min_lat[0]).strip().lower() != 'nan' and str(min_lon[0]).strip().lower() != 'nan' and
+            str(max_lat[0]).strip().lower() != 'nan' and str(max_lon[0]).strip().lower() != 'nan' and
+            str(min_lat[0]).strip() != '' and str(min_lon[0]).strip() != '' and
+            str(max_lat[0]).strip() != '' and str(max_lon[0]).strip() != ''
+        ):
+            try:
+                codes = country_codes.countries_from_wkt(
+                    country_codes.create_wkt_from_bbox_coordinates(min_lat, min_lon, max_lat, max_lon)
+                )
+                df_current_data.loc[
+                    df_current_data['Metadata Property'] == 'bb_has_country_code',
+                    'Metadata Value'
+                ] = codes
+                updates_to_save['bb_has_country_code'] = codes
+                print(f"Country codes updated: {codes}")
+            except Exception as e:
+                print(f"Error retrieving country codes: {e}")
+        if updates_to_save:
+            batch_save_to_excel_with_formatting(updates_to_save)
+
+        # Get Polygon country code if polygon coordinates are provided
+        polygon_coords = df_current_data.loc[df_current_data['Metadata Property'] == 'has_polygonal_representation', 'Metadata Value'].values
+        if (
+            len(polygon_coords) > 0 and
+            str(polygon_coords[0]).strip().lower() != 'nan' and
+            str(polygon_coords[0]).strip() != ''
+        ):
+            try:
+                codes = country_codes.countries_from_wkt(
+                    country_codes.create_wkt_from_polygon_coordinates(polygon_coords)
+                )
+                df_current_data.loc[
+                    df_current_data['Metadata Property'] == 'polygon_has_country_code',
+                    'Metadata Value'
+                ] = codes
+                updates_to_save['polygon_has_country_code'] = codes
+                print(f"Country codes updated: {codes}")
+            except Exception as e:
+                print(f"Error retrieving country codes: {e}")
+        if updates_to_save:
+            batch_save_to_excel_with_formatting(updates_to_save)
+
+        refresh_treeview()
+        update_missing_values_list()
+        pending_changes.clear()
         
         cleanup_edit()
+
+        #Messagebox saving complete
+        messagebox.showinfo("Saved", "Your changes have been saved successfully.")
+
 
     def open_with_excel():
         print("Open current file with Excel")
@@ -333,17 +421,23 @@ def change_dataset(root=None, selected_file=None):
             header = xml_conversion.header
             footer = xml_conversion.footer
             #Building final XML data
-            xmldata = f'{header}{xml_conversion.get_identifier(data_dict)}{xml_conversion.get_title(data_dict)}{xml_conversion.get_description(data_dict)}{xml_conversion.get_issued(data_dict)}{xml_conversion.get_modified(data_dict)}{xml_conversion.get_publisher(data_dict)}{xml_conversion.get_contributor(data_dict)}{xml_conversion.get_creator(data_dict)}{xml_conversion.get_owner(data_dict)}{xml_conversion.get_responsible(data_dict)}{xml_conversion.get_original_id(data_dict)}{xml_conversion.get_ariadne_subject(data_dict)}{xml_conversion.get_native_subject(data_dict)}{xml_conversion.get_derived_subject_uri(data_dict)}{xml_conversion.get_derived_subject_label(data_dict)}{xml_conversion.get_language(data_dict)}{xml_conversion.get_created_on(data_dict)}{xml_conversion.get_landing_page(data_dict)}{xml_conversion.get_access_policy(data_dict)}{xml_conversion.get_access_rights(data_dict)}{xml_conversion.get_extent(data_dict)}{xml_conversion.get_from(data_dict)}{xml_conversion.get_until(data_dict)}{xml_conversion.get_spatial_coverage(data_dict)}{xml_conversion.get_visual_component(data_dict)}{xml_conversion.get_is_part_of(data_dict)}{footer}'
+            xmldata = f'{header}{xml_conversion.get_identifier(data_dict)}{xml_conversion.get_title(data_dict)}{xml_conversion.get_description(data_dict)}{xml_conversion.get_issued(data_dict)}{xml_conversion.get_modified(data_dict)}{xml_conversion.get_publisher(data_dict)}{xml_conversion.get_contributor(data_dict)}{xml_conversion.get_creator(data_dict)}{xml_conversion.get_owner(data_dict)}{xml_conversion.get_responsible(data_dict)}{xml_conversion.get_original_id(data_dict)}{xml_conversion.get_ariadne_subject(data_dict)}{xml_conversion.get_native_subject(data_dict)}{xml_conversion.get_derived_subject_uri(data_dict)}{xml_conversion.get_derived_subject_label(data_dict)}{xml_conversion.get_language(data_dict)}{xml_conversion.get_created_on(data_dict)}{xml_conversion.get_landing_page(data_dict)}{xml_conversion.get_access_policy(data_dict)}{xml_conversion.get_access_rights(data_dict)}{xml_conversion.get_extent(data_dict)}{xml_conversion.get_temporal_coverage(data_dict)}{xml_conversion.get_spatial_coverage(data_dict)}{xml_conversion.get_visual_component(data_dict)}{xml_conversion.get_is_part_of(data_dict)}{footer}'
             #print(xmldata)
-            #Fortmatting the final XML data with indentation for better readability
+            #FortFormat the final XML data with indentation for better readability
             dom = xml.dom.minidom.parseString(xmldata)
             formatted_xml = dom.toprettyxml()
             print(formatted_xml)
             filename = data_dict.get('has_identifier').get('Metadata Value')
+            #Show error log if there are any errors during XML conversion
+            xml_errorlog = xml_conversion.display_error_log()
+            if xml_errorlog:
+                messagebox.showerror("XML Conversion Errors", f"The XML conversion completed with the following errors:\n\n{xml_errorlog}\n\nPlease review the errors and correct the relevant fields before converting again.")
+                return
+            else:
             #save file to metadata_mirror folder
-            with open(os.path.join(os.path.dirname(__file__), f"../../metadata_mirror/{filename}.xml"), 'w', encoding='utf-8') as f:
-                f.write(formatted_xml)
-            messagebox.showinfo("Success", f"XML file '{filename}.xml' created successfully in metadata_mirror folder.")
+                with open(os.path.join(os.path.dirname(__file__), f"../../metadata_mirror/{filename}.xml"), 'w', encoding='utf-8') as f:
+                    f.write(formatted_xml)
+                messagebox.showinfo("Success", f"XML file '{filename}.xml' created successfully in metadata_mirror folder.")
             #set metadata_status in log file to converted for this record
             log_tables_path = os.path.join(os.path.dirname(__file__), "../../metadata_tables")
             log_file_path = os.path.join(log_tables_path, "log.xlsx")
@@ -358,14 +452,25 @@ def change_dataset(root=None, selected_file=None):
         # Implement the delete functionality here
         if messagebox.askyesno("Confirm Delete", "Are you sure you want to delete this dataset? This action cannot be undone."):
             try:
-                #Delete xml
-                xml_file_path = os.path.join(os.path.dirname(__file__), f"../../metadata_mirror/{current_file_name}.xml")
+                #if xml file exists in metadata_mirror folder, delete it as well
+                if os.path.exists(os.path.join(os.path.dirname(__file__), f"../../metadata_mirror/{current_file_name}.xml")):
+                    #Delete xml
+                    xml_file_path = os.path.join(os.path.dirname(__file__), f"../../metadata_mirror/{current_file_name}.xml")
+                    os.remove(xml_file_path)
                 os.remove(current_file_path)
-                os.remove(xml_file_path)
                 messagebox.showinfo("Deleted", "Dataset deleted successfully.")
                 go_back()
             except Exception as e:
                 messagebox.showerror("Error", f"Could not delete dataset: {e}")
+        #delete also from log file
+        log_tables_path = os.path.join(os.path.dirname(__file__), "../../metadata_tables")
+        log_file_path = os.path.join(log_tables_path, "log.xlsx")
+        if os.path.exists(log_file_path):
+            df_log = pd.read_excel(log_file_path)
+            identifier = df_current_data.loc[df_current_data['Metadata Property'] == 'has_identifier', 'Metadata Value'].values[0]
+            df_log = df_log[df_log['identifier'] != identifier]
+            df_log.to_excel(log_file_path, index=False)
+            print("Dataset deleted from log file.")
 
     def go_back():
         print("Button Back clicked")
@@ -490,7 +595,7 @@ def change_dataset(root=None, selected_file=None):
     desirable_fields = [
         'has_description',
         'has_access_policy',
-        'has_period',
+        'has_periodo_uri',
         'has_chronontology_uri',
         'from',
         'until',
@@ -523,6 +628,7 @@ def change_dataset(root=None, selected_file=None):
                     if os.path.exists(log_file_path):
                         df_log = pd.read_excel(log_file_path)
                         identifier = current_values.get('has_identifier')
+                        df_log['metadata_status'] = df_log['metadata_status'].astype(str)
                         df_log.loc[df_log['identifier'] == identifier, 'metadata_status'] = 'completed'
                         df_log.to_excel(log_file_path, index=False)
             
@@ -598,6 +704,7 @@ def change_dataset(root=None, selected_file=None):
     # Variables for editing
     edit_item = None
     edit_entry = None
+    pending_changes = {}
 
     def on_double_click(event):
         """Handle double-click to edit cell"""
@@ -633,7 +740,7 @@ def change_dataset(root=None, selected_file=None):
                     available_datasets = [os.path.splitext(f)[0] for f in xml_files]
                 
                 # Create combobox widget for editing
-                edit_entry = ttk.Combobox(tree, values=available_datasets)
+                edit_entry = ttk.Combobox(tree, values=available_datasets, state='readonly')
                 edit_entry.place(x=bbox[0], y=bbox[1], width=bbox[2], height=bbox[3])
                 
                 # Set current value
@@ -642,13 +749,13 @@ def change_dataset(root=None, selected_file=None):
                 
                 # Bind events
                 edit_entry.bind('<Escape>', cancel_edit)
-                edit_entry.bind('<Return>', save_edit)
-                edit_entry.bind('<FocusOut>', save_edit)
+                edit_entry.bind('<Return>', do_edit)
+                edit_entry.bind('<<ComboboxSelected>>', do_edit)
             elif property_name == 'has_ariadne_subject':
                 # Create combobox widget for editing with predefined subjects
                 predefined_subjects = [
                     "Artefact",
-                    "Building suryvey",
+                    "Building survey",
                     "Burial",
                     "Coin",
                     "Date",
@@ -662,7 +769,7 @@ def change_dataset(root=None, selected_file=None):
                     "Scientific analysis",
                     "Site/monument"
                 ]
-                edit_entry = ttk.Combobox(tree, values=predefined_subjects)
+                edit_entry = ttk.Combobox(tree, values=predefined_subjects, state='readonly')
                 edit_entry.place(x=bbox[0], y=bbox[1], width=bbox[2], height=bbox[3])
                 
                 # Set current value
@@ -671,8 +778,8 @@ def change_dataset(root=None, selected_file=None):
                 
                 # Bind events
                 edit_entry.bind('<Escape>', cancel_edit)
-                edit_entry.bind('<Return>', save_edit)
-                edit_entry.bind('<FocusOut>', save_edit)
+                edit_entry.bind('<Return>', do_edit)
+                edit_entry.bind('<<ComboboxSelected>>', do_edit)
             else:
                 # Create normal entry widget for editing
                 edit_entry = tk.Entry(tree)
@@ -685,12 +792,28 @@ def change_dataset(root=None, selected_file=None):
                 
                 # Bind events
                 edit_entry.bind('<Escape>', cancel_edit)
-                edit_entry.bind('<Return>', save_edit)
+                edit_entry.bind('<Return>', do_edit)
                 #End also when clicking outside
-                edit_entry.bind('<FocusOut>', save_edit)
+                edit_entry.bind('<FocusOut>', do_edit)
 
     def cancel_edit(event=None):
         """Cancel editing without saving"""
+        cleanup_edit()
+
+    def do_edit(event=None):
+        """Apply changes without calling the full save function to avoid recursion"""
+        nonlocal edit_item, edit_entry, df_current_data, pending_changes
+        if edit_entry and edit_item and edit_entry.winfo_exists():
+            new_value = edit_entry.get()
+            old_values = tree.item(edit_item, 'values')
+            property_name = old_values[0]
+
+            # Update tree and DataFrame
+            tree.item(edit_item, values=(property_name, new_value))
+            df_current_data.loc[df_current_data['Metadata Property'] == property_name, 'Metadata Value'] = new_value
+            pending_changes[property_name] = new_value
+
+        # Always reset editor state after inline edit is applied/cancelled.
         cleanup_edit()
 
     def cleanup_edit():
@@ -723,8 +846,6 @@ def change_dataset(root=None, selected_file=None):
         doc_path2 = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../documentation/MTT_Readme.html"))
         webbrowser.open(f"file:///{doc_path2.replace(os.sep, '/')}")
         webbrowser.open(f"file:///{doc_path.replace(os.sep, '/')}")
-
-
 
    # Back button
     back_button = tk.Button(newdatamenu, text="Back", command=go_back, width=25, height=1, bg="orange", fg="white", font=("Helvetica", 10, "bold"))
@@ -768,4 +889,5 @@ else:
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
     from recognize_repository import rec_repo
     import xml_conversion
+    import country_codes
     from modules.menu import main_menu
