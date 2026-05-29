@@ -280,7 +280,7 @@ def main_menu_design(root=None):
         try:
             if os.path.exists(log_xlsx):
                 wb_log = load_workbook(log_xlsx)
-                ws_log = wb_log['metadata_status']
+                ws_log = wb_log['Sheet1']
                 # Find the next empty row
                 next_row = ws_log.max_row + 1
                 ws_log.cell(row=next_row, column=1, value=f"{dataset_name}.xlsx")  # Assuming filename is dataset_name.xlsx
@@ -303,7 +303,12 @@ def main_menu_design(root=None):
         #Get the file currently selected in the value_list Listbox
         selected_file = None
         try:
-            selected_file = value_list.get(value_list.curselection())
+            selection = value_list.curselection()
+            if not selection:
+                messagebox.showerror("Error", "Please select a dataset from the Data Selector list.")
+                return
+            selected_display = value_list.get(selection[0])
+            selected_file = display_to_file.get(selected_display, selected_display)
             print(f"Selected file: {selected_file}")
         except Exception as e:
             messagebox.showerror("Error", "Please select a dataset from the Data Selector list.")
@@ -384,13 +389,13 @@ def main_menu_design(root=None):
         df_log = None
         if os.path.exists(log_xlsx):
             try:
-                df_log = pd.read_excel(log_xlsx, sheet_name="metadata_status")
+                df_log = pd.read_excel(log_xlsx, sheet_name="Sheet1")
             except Exception:
                 df_log = pd.read_excel(log_xlsx)
         elif os.path.exists(log_csv):
             df_log = pd.read_csv(log_csv)
-        if df_log is not None and 'identifier' in df_log.columns and 'status' in df_log.columns:
-            status_by_identifier = {str(row['identifier']).strip(): str(row['status']).strip() for _, row in df_log.iterrows()}
+        if df_log is not None and 'identifier' in df_log.columns and 'metadata_status' in df_log.columns:
+            status_by_identifier = {str(row['identifier']).strip(): str(row['metadata_status']).strip() for _, row in df_log.iterrows()}
     except Exception as e:
         print(f"Could not load df_log: {e}")
 
@@ -403,6 +408,7 @@ def main_menu_design(root=None):
     scrollbar = tk.Scrollbar(scrollbar_frame)
     scrollbar.grid(row=0, column=1, sticky='ns')
     value_list = tk.Listbox(scrollbar_frame, yscrollcommand=scrollbar.set, width=40, height=15)
+    display_to_file = {}
     #for i in range(100):
         #value_list.insert(tk.END, str(i))
     # List all files in metadata_tables with status icon
@@ -421,6 +427,7 @@ def main_menu_design(root=None):
         icon = status_icon.get(str(status).lower(), '') if status else ''
         display_text = f"{icon} {file}" if icon else file
         value_list.insert(tk.END, display_text)
+        display_to_file[display_text] = file
 
     value_list.grid(row=0, column=0, sticky='nsew')
     scrollbar.config(command=value_list.yview)
@@ -428,15 +435,12 @@ def main_menu_design(root=None):
 
     #Selected file in value_list to dataframe and display in the data viewer
     # This function will be called when an item in the listbox is selected
-    def _strip_icon(text):
-        for ic in ['🟡', '🟢', '📄', '📤']:
-            if text.startswith(ic + ' '):
-                return text[len(ic) + 1:]
-        return text
-
     def on_select(event):
-        selected_file = value_list.get(value_list.curselection())
-        selected_file = _strip_icon(selected_file)
+        selection = value_list.curselection()
+        if not selection:
+            return
+        selected_display = value_list.get(selection[0])
+        selected_file = display_to_file.get(selected_display, selected_display)
         file_path = os.path.join(metadata_tables_path, selected_file)
         df = pd.read_excel(file_path, sheet_name="metadata")  # Assuming the files are Excel files
         df = df.fillna('not_defined')  # Fill NaN values with empty strings
