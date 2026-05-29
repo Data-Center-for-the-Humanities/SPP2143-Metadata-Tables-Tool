@@ -296,9 +296,9 @@ def new_dataset(root=None):
 
     def save_edit(event=None):
         """Save the edited value"""
-        nonlocal edit_item, edit_entry
+        nonlocal edit_item, edit_entry, pending_changes
         
-        if edit_entry and edit_item:
+        if edit_entry and edit_item and edit_entry.winfo_exists():
             new_value = edit_entry.get()
             old_values = tree.item(edit_item, 'values')
             tree.item(edit_item, values=(old_values[0], new_value))
@@ -306,14 +306,18 @@ def new_dataset(root=None):
             # Update the DataFrame and save to Excel with formatting
             property_name = old_values[0]
             df_current_data.loc[df_current_data['Metadata Property'] == property_name, 'Metadata Value'] = new_value
-            
-            # Use the shared formatting function
-            save_to_excel_with_formatting(property_name, new_value)
-                
+            pending_changes[property_name] = new_value
+
+        if pending_changes:
+            batch_save_to_excel_with_formatting(pending_changes)
+            pending_changes.clear()
             # Refresh the missing values list after saving
             update_missing_values_list()
         
         cleanup_edit()
+
+        #Messagebox saving complete
+        messagebox.showinfo("Saved", "Your changes have been saved successfully.")
 
     def open_with_excel():
         print("Open current file with Excel")
@@ -335,19 +339,25 @@ def new_dataset(root=None):
             footer = xml_conversion.footer
             #Building final XML data
             if "collection" in data_dict.get('Resource_Type').get('Metadata Value'):
-                xmldata = f'{header}{xml_conversion.get_identifier(data_dict)}{xml_conversion.get_title(data_dict)}{xml_conversion.get_description(data_dict)}{xml_conversion.get_issued(data_dict)}{xml_conversion.get_modified(data_dict)}{xml_conversion.get_publisher(data_dict)}{xml_conversion.get_contributor(data_dict)}{xml_conversion.get_creator(data_dict)}{xml_conversion.get_owner(data_dict)}{xml_conversion.get_responsible(data_dict)}{xml_conversion.get_original_id(data_dict)}{xml_conversion.get_ariadne_subject(data_dict)}{xml_conversion.get_native_subject(data_dict)}{xml_conversion.get_derived_subject_uri(data_dict)}{xml_conversion.get_derived_subject_label(data_dict)}{xml_conversion.get_language(data_dict)}{xml_conversion.get_created_on(data_dict)}{xml_conversion.get_landing_page(data_dict)}{xml_conversion.get_access_policy(data_dict)}{xml_conversion.get_access_rights(data_dict)}{xml_conversion.get_extent(data_dict)}{xml_conversion.get_from(data_dict)}{xml_conversion.get_until(data_dict)}{xml_conversion.get_spatial_coverage(data_dict)}{xml_conversion.get_visual_component(data_dict)}{xml_conversion.get_is_part_of(data_dict)}{footer}'
+                xmldata = f'{header}{xml_conversion.get_identifier(data_dict)}{xml_conversion.get_title(data_dict)}{xml_conversion.get_description(data_dict)}{xml_conversion.get_issued(data_dict)}{xml_conversion.get_modified(data_dict)}{xml_conversion.get_publisher(data_dict)}{xml_conversion.get_contributor(data_dict)}{xml_conversion.get_creator(data_dict)}{xml_conversion.get_owner(data_dict)}{xml_conversion.get_responsible(data_dict)}{xml_conversion.get_original_id(data_dict)}{xml_conversion.get_ariadne_subject(data_dict)}{xml_conversion.get_native_subject(data_dict)}{xml_conversion.get_derived_subject_uri(data_dict)}{xml_conversion.get_derived_subject_label(data_dict)}{xml_conversion.get_language(data_dict)}{xml_conversion.get_created_on(data_dict)}{xml_conversion.get_landing_page(data_dict)}{xml_conversion.get_access_policy(data_dict)}{xml_conversion.get_access_rights(data_dict)}{xml_conversion.get_extent(data_dict)}{xml_conversion.get_temporal_coverage(data_dict)}{xml_conversion.get_spatial_coverage(data_dict)}{xml_conversion.get_visual_component(data_dict)}{xml_conversion.get_is_part_of(data_dict)}{footer}'
             else:
-                xmldata = f'{header}{xml_conversion.get_identifier(data_dict)}{xml_conversion.get_title(data_dict)}{xml_conversion.get_description(data_dict)}{xml_conversion.get_issued(data_dict)}{xml_conversion.get_modified(data_dict)}{xml_conversion.get_publisher(data_dict)}{xml_conversion.get_contributor(data_dict)}{xml_conversion.get_creator(data_dict)}{xml_conversion.get_owner(data_dict)}{xml_conversion.get_responsible(data_dict)}{xml_conversion.get_original_id(data_dict)}{xml_conversion.get_ariadne_subject(data_dict)}{xml_conversion.get_native_subject(data_dict)}{xml_conversion.get_derived_subject_uri(data_dict)}{xml_conversion.get_derived_subject_label(data_dict)}{xml_conversion.get_language(data_dict)}{xml_conversion.get_created_on(data_dict)}{xml_conversion.get_landing_page(data_dict)}{xml_conversion.get_access_policy(data_dict)}{xml_conversion.get_access_rights(data_dict)}{xml_conversion.get_extent(data_dict)}{xml_conversion.get_from(data_dict)}{xml_conversion.get_until(data_dict)}{xml_conversion.get_data_type(data_dict)}{xml_conversion.get_data_format(data_dict)}{xml_conversion.get_spatial_coverage(data_dict)}{xml_conversion.get_visual_component(data_dict)}{xml_conversion.get_is_part_of(data_dict)}{footer}'
+                xmldata = f'{header}{xml_conversion.get_identifier(data_dict)}{xml_conversion.get_title(data_dict)}{xml_conversion.get_description(data_dict)}{xml_conversion.get_issued(data_dict)}{xml_conversion.get_modified(data_dict)}{xml_conversion.get_publisher(data_dict)}{xml_conversion.get_contributor(data_dict)}{xml_conversion.get_creator(data_dict)}{xml_conversion.get_owner(data_dict)}{xml_conversion.get_responsible(data_dict)}{xml_conversion.get_original_id(data_dict)}{xml_conversion.get_ariadne_subject(data_dict)}{xml_conversion.get_native_subject(data_dict)}{xml_conversion.get_derived_subject_uri(data_dict)}{xml_conversion.get_derived_subject_label(data_dict)}{xml_conversion.get_language(data_dict)}{xml_conversion.get_created_on(data_dict)}{xml_conversion.get_landing_page(data_dict)}{xml_conversion.get_access_policy(data_dict)}{xml_conversion.get_access_rights(data_dict)}{xml_conversion.get_extent(data_dict)}{xml_conversion.get_temporal_coverage(data_dict)}{xml_conversion.get_spatial_coverage(data_dict)}{xml_conversion.get_visual_component(data_dict)}{xml_conversion.get_is_part_of(data_dict)}{footer}'
             #print(xmldata)
             #Fortmatting the final XML data with indentation for better readability
             dom = xml.dom.minidom.parseString(xmldata)
             formatted_xml = dom.toprettyxml()
             print(formatted_xml)
             filename = data_dict.get('has_identifier').get('Metadata Value')
-            #save file to metadata_mirror folder
-            with open(os.path.join(os.path.dirname(__file__), f"../../metadata_mirror/{filename}.xml"), 'w', encoding='utf-8') as f:
-                f.write(formatted_xml)
-            messagebox.showinfo("Success", f"XML file {filename}.xml has been created successfully in metadata_mirror folder.")
+            #Show error log if there are any errors during XML conversion
+            xml_errorlog = xml_conversion.display_error_log()
+            if xml_errorlog:
+                messagebox.showerror("XML Conversion Errors", f"The XML conversion completed with the following errors:\n\n{xml_errorlog}\n\nPlease review the errors and correct the relevant fields before converting again.")
+                return
+            else:
+                #save file to metadata_mirror folder
+                with open(os.path.join(os.path.dirname(__file__), f"../../metadata_mirror/{filename}.xml"), 'w', encoding='utf-8') as f:
+                    f.write(formatted_xml)
+                messagebox.showinfo("Success", f"XML file {filename}.xml has been created successfully in metadata_mirror folder.")
             #set metadata_status in log file to converted for this record
             log_tables_path = os.path.join(os.path.dirname(__file__), "../../metadata_tables")
             log_file_path = os.path.join(log_tables_path, "log.xlsx")
@@ -485,7 +495,7 @@ def new_dataset(root=None):
     desirable_fields = [
         'has_description',
         'has_access_policy',
-        'has_period',
+        'has_periodo_uri',
         'has_chronontology_uri',
         'from',
         'until',
@@ -592,6 +602,7 @@ def new_dataset(root=None):
     # Variables for editing
     edit_item = None
     edit_entry = None
+    pending_changes = {}
 
     def on_double_click(event):
         """Handle double-click to edit cell"""
@@ -627,7 +638,7 @@ def new_dataset(root=None):
                     available_datasets = [os.path.splitext(f)[0] for f in xml_files]
                 
                 # Create combobox widget for editing
-                edit_entry = ttk.Combobox(tree, values=available_datasets)
+                edit_entry = ttk.Combobox(tree, values=available_datasets, state='readonly')
                 edit_entry.place(x=bbox[0], y=bbox[1], width=bbox[2], height=bbox[3])
                 
                 # Set current value
@@ -636,8 +647,8 @@ def new_dataset(root=None):
                 
                 # Bind events
                 edit_entry.bind('<Escape>', cancel_edit)
-                edit_entry.bind('<Return>', save_edit)
-                edit_entry.bind('<FocusOut>', save_edit)
+                edit_entry.bind('<Return>', do_edit)
+                edit_entry.bind('<<ComboboxSelected>>', do_edit)
             elif property_name == 'has_ariadne_subject':
                 # Create combobox widget for editing with predefined subjects
                 predefined_subjects = [
@@ -656,7 +667,7 @@ def new_dataset(root=None):
                     "Scientific analysis",
                     "Site/monument"
                 ]
-                edit_entry = ttk.Combobox(tree, values=predefined_subjects)
+                edit_entry = ttk.Combobox(tree, values=predefined_subjects, state='readonly')
                 edit_entry.place(x=bbox[0], y=bbox[1], width=bbox[2], height=bbox[3])
                 
                 # Set current value
@@ -665,8 +676,8 @@ def new_dataset(root=None):
                 
                 # Bind events
                 edit_entry.bind('<Escape>', cancel_edit)
-                edit_entry.bind('<Return>', save_edit)
-                edit_entry.bind('<FocusOut>', save_edit)
+                edit_entry.bind('<Return>', do_edit)
+                edit_entry.bind('<<ComboboxSelected>>', do_edit)
             else:
                 # Create normal entry widget for editing
                 edit_entry = tk.Entry(tree)
@@ -679,12 +690,28 @@ def new_dataset(root=None):
                 
                 # Bind events
                 edit_entry.bind('<Escape>', cancel_edit)
-                edit_entry.bind('<Return>', save_edit)
+                edit_entry.bind('<Return>', do_edit)
                 #End also when clicking outside
-                edit_entry.bind('<FocusOut>', save_edit)
+                edit_entry.bind('<FocusOut>', do_edit)
 
     def cancel_edit(event=None):
         """Cancel editing without saving"""
+        cleanup_edit()
+
+    def do_edit(event=None):
+        """Apply changes without calling the full save function to avoid recursion"""
+        nonlocal edit_item, edit_entry, df_current_data, pending_changes
+        if edit_entry and edit_item and edit_entry.winfo_exists():
+            new_value = edit_entry.get()
+            old_values = tree.item(edit_item, 'values')
+            property_name = old_values[0]
+
+            # Update tree and DataFrame
+            tree.item(edit_item, values=(property_name, new_value))
+            df_current_data.loc[df_current_data['Metadata Property'] == property_name, 'Metadata Value'] = new_value
+            pending_changes[property_name] = new_value
+
+        # Always reset editor state after inline edit is applied/cancelled.
         cleanup_edit()
 
     def cleanup_edit():
