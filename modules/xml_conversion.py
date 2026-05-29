@@ -4,7 +4,7 @@
 import pandas as pd
 import xml.dom.minidom
 import os
-from wikidata_country_info import get_country_name, build_country_xml
+from wikidata_country_info import process_country_codes
 
 ##############################################
 #Testdata
@@ -34,6 +34,24 @@ df_registered_persons = pd.read_excel(os.path.join(metadata_tables_path, "regist
 
 header = '<oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:crm="http://www.cidoc-crm.org/cidoc-crm/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dct="http://purl.org/dc/terms/" xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:dch="http://oai.dch.phil-fak.uni-koeln.de/" xmlns:owl ="http://www.w3.org/2002/07/owl#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">'
 footer = '</oai_dc:dc>'
+
+#Create Error Log
+log = []
+
+#Add error message to log
+def error_log(message):
+    log.append(message)
+
+#Process and display error log
+def display_error_log():
+    if log:
+        logsting = "\n".join(log)
+        print(logsting)
+        #empty log for next conversion
+        log.clear()
+        return logsting
+    else:
+        pass
 
 #Check string for invalid characters
 def check_string(valuesting):
@@ -116,7 +134,7 @@ def get_identifier(dict):
 #identifier = get_identifier(data_dict)
 #print(identifier)
 
-#2. has_title, dct, mandatory
+#2. has_title, dct, mandatory, multiple values
 def get_title(dict):
     value = dict.get('has_title')
     value = value.get('Metadata Value')
@@ -125,7 +143,18 @@ def get_title(dict):
         value = '<dct:title />'
     else:
         value = check_string(value)
-        value = f'<dct:title>{value}</dct:title>'
+        value = value.split(", ")
+        titles = []
+        for element in value:
+            if "@" not in element:
+                error_log("Error: Title element does not contain language tag. Please check the format of the title element. It should be in the format 'Title@language'.")
+                break
+            element = element.split("@")
+            lang = element[1]
+            title = element[0]
+            value = f'<dct:title xml:lang="{lang}">{title}</dct:title>'
+            titles.append(value)
+        value = "".join(titles)
     return value
 
 #3. has_description, dct, desirable
@@ -146,6 +175,25 @@ def get_issued(dict):
     if value == 'not_defined':
         value = '<crm:P81_ongoing_through />'
     else:
+        if "-" in value:
+            date_elements = value.split("-")
+            if len(date_elements) == 3:
+                year = date_elements[0]
+                month = date_elements[1]
+                day = date_elements[2]
+                if len(year) == 4 and len(month) == 2 and len(day) == 2:
+                    month = int(month)
+                    day = int(day)
+                    if month < 1 or month > 12:
+                        error_log("Error: Date value was_issued needs to be in the format 'YYYY-MM-DD' and month needs to be between 01 and 12.")
+                    if day < 1 or day > 32:
+                        error_log("Error: Date value was_issued needs to be in the format 'YYYY-MM-DD' and day needs to be between 01 and 31.")
+                else:
+                    error_log("Error: Date value was_issued needs to be in the format 'YYYY-MM-DD'")
+            else:
+                error_log("Error: Date value was_issued needs to be in the format 'YYYY-MM-DD'")
+        else:
+            error_log("Error: Date value was_issued needs to be in the format 'YYYY-MM-DD'")
         value = f'<crm:P81_ongoing_through>{value}</crm:P81_ongoing_through>'
     return value
 
@@ -156,6 +204,25 @@ def get_modified(dict):
     if value == 'not_defined':
         value = '<dch:was_modified />'
     else:
+        if "-" in value:
+            date_elements = value.split("-")
+            if len(date_elements) == 3:
+                year = date_elements[0]
+                month = date_elements[1]
+                day = date_elements[2]
+                if len(year) == 4 and len(month) == 2 and len(day) == 2:
+                    month = int(month)
+                    day = int(day)
+                    if month < 1 or month > 12:
+                        error_log("Error: Date value was_modified needs to be in the format 'YYYY-MM-DD' and month needs to be between 01 and 12.")
+                    if day < 1 or day > 32:
+                        error_log("Error: Date value was_modified needs to be in the format 'YYYY-MM-DD' and day needs to be between 01 and 31.")
+                else:
+                    error_log("Error: Date value was_modified needs to be in the format 'YYYY-MM-DD'")
+            else:
+                error_log("Error: Date value was_modified needs to be in the format 'YYYY-MM-DD'")
+        else:
+            error_log("Error: Date value was_modified needs to be in the format 'YYYY-MM-DD'")
         value = f'<dch:was_modified>{value}</dch:was_modified>'
     return value
 
@@ -223,7 +290,7 @@ def get_ariadne_subject(dict):
         value = f'<dch:has_ariadne_subject>{value}</dch:has_ariadne_subject>'
     return value
 
-#13. has_native_subject, dc, mandatory
+#13. has_native_subject, dc, mandatory, multiple values
 def get_native_subject(dict):
     value = dict.get('has_native_subject')
     value = value.get('Metadata Value')
@@ -231,40 +298,57 @@ def get_native_subject(dict):
         value = '<dc:subject />'
     else:
         value = check_string(value)
-        value = f'<dc:subject>{value}</dc:subject>'
+        value = value.split(', ')
+        values = []
+        for item in value:
+            item = f'<dc:subject>{item}</dc:subject>'
+            values.append(item)
+        value = ''.join(values)
     return value
 
-#14. has_derived_subject_uri, dch, mandatory
+#14. has_derived_subject_uri, dch, mandatory, multiple values
 def get_derived_subject_uri(dict):
     value = dict.get('has_derived_subject_uri')
     value = value.get('Metadata Value')
     if value == 'not_defined':
         value = '<dch:has_derived_subject_uri />'
     else:
-        value = check_string(value)
-        value = f'<dch:has_derived_subject_uri>{value}</dch:has_derived_subject_uri>'
+        value = value.split(', ')
+        values = []
+        for item in value:
+            item = f'<dch:has_derived_subject_uri>{item}</dch:has_derived_subject_uri>'
+            values.append(item)
+        value = ''.join(values)
     return value
 
-#15. has_derived_subject_term, dch, mandatory
+#15. has_derived_subject_term, dch, mandatory, multiple values
 def get_derived_subject_label(dict):
     value = dict.get('has_derived_subject_term')
     value = value.get('Metadata Value')
     if value == 'not_defined':
         value = '<dch:derived_subject_label />'
     else:
-        value = check_string(value)
-        value = f'<dch:derived_subject_label>{value}</dch:derived_subject_label>'
+        value = value.split(', ')
+        values = []
+        for item in value:
+            item = f'<dch:derived_subject_label>{item}</dch:derived_subject_label>'
+            values.append(item)
+        value = ''.join(values)
     return value
 
-#16. has_language, crm, mandatory
+#16. has_language, crm, mandatory, multiple values
 def get_language(dict):
     value = dict.get('has_language')
     value = value.get('Metadata Value')
     if value == 'not_defined':
         value = '<crm:P72_has_language />'
     else:
-        value = check_string(value)
-        value = f'<crm:P72_has_language>{value}</crm:P72_has_language>'
+        value = value.split(', ')
+        values = []
+        for item in value:
+            item = f'<crm:P72_has_language>{item}</crm:P72_has_language>'
+            values.append(item)
+        value = ''.join(values)
     return value
 
 #17. was_created_on, dct, mandatory
@@ -274,6 +358,25 @@ def get_created_on(dict):
     if value == 'not_defined':
         value = '<dct:created />'
     else:
+        if "-" in value:
+            date_elements = value.split("-")
+            if len(date_elements) == 3:
+                year = date_elements[0]
+                month = date_elements[1]
+                day = date_elements[2]
+                if len(year) == 4 and len(month) == 2 and len(day) == 2:
+                    month = int(month)
+                    day = int(day)
+                    if month < 1 or month > 12:
+                        error_log("Error: Date value was_created_on needs to be in the format 'YYYY-MM-DD' and month needs to be between 01 and 12.")
+                    if day < 1 or day > 32:
+                        error_log("Error: Date value was_created_on needs to be in the format 'YYYY-MM-DD' and day needs to be between 01 and 31.")
+                else:
+                    error_log("Error: Date value was_created_on needs to be in the format 'YYYY-MM-DD'")
+            else:
+                error_log("Error: Date value was_created_on needs to be in the format 'YYYY-MM-DD'")
+        else:
+            error_log("Error: Date value was_created_on needs to be in the format 'YYYY-MM-DD'")
         value = f'<dct:created>{value}</dct:created>'
     return value
 
@@ -284,7 +387,6 @@ def get_landing_page(dict):
     if value == 'not_defined':
         value = '<dch:landing_page />'
     else:
-        value = check_string(value)
         value = f'<dch:landing_page>{value}</dch:landing_page>'
     return value
 
@@ -322,6 +424,13 @@ def get_extent(dict):
     return value
 
 #22. has_temporal_coverage, specified by 29.-33., desirable
+def get_temporal_coverage(dict):
+    periodo = get_period(dict)
+    native_period = get_native_period(dict)
+    from_date = get_from(dict)
+    until_date = get_until(dict)
+    temporal_coverage_xml = f'<dch:has_temporal_coverage>{periodo}{native_period}{from_date}{until_date}</dch:has_temporal_coverage>'
+    return temporal_coverage_xml
 
 #23. has_spatial_coverage, specified by 34.-44., mandatory
 
@@ -334,7 +443,6 @@ def get_period(dict):
     if value == 'not_defined':
         value = '<dch:period />'
     else:
-        value = check_string(value)
         value = f'<dch:period>{value}</dch:period>'
     return value
 
@@ -345,7 +453,6 @@ def get_chronontology(dict):
     if value == 'not_defined':
         value = ''
     else:
-        value = check_string(value)
         value = f', temporal coverage in iDAI.chronontology: {value}'
     return value
 
@@ -368,7 +475,6 @@ def get_from(dict):
     if value == 'not_defined':
         value = '<crm:P79_beginning_is_qualified_by />'
     else:
-        value = check_string(value)
         value = f'<crm:P79_beginning_is_qualified_by>{value}</crm:P79_beginning_is_qualified_by>'
     return value
 
@@ -379,7 +485,6 @@ def get_until(dict):
     if value == 'not_defined':
         value = '<crm:P80_end_is_qualified_by />'
     else:
-        value = check_string(value)
         value = f'<crm:P80_end_is_qualified_by>{value}</crm:P80_end_is_qualified_by>'
     return value
 
@@ -411,14 +516,10 @@ def get_point_coordinate_system(dict):
 def get_point_country_code(dict):
     value = dict.get('point_has_country_code')
     value = value.get('Metadata Value')
-    if value == 'not_defined':
+    if value == 'not_defined' or value == 'Is filled out automatically.':
         value = '<crm:P3_has_note />'
     else:
-        value = check_string(value)
-        q_id, country_name, name_language = get_country_name(value)
-        country_xml = build_country_xml(q_id, country_name, name_language)
-        value = f'<crm:P3_has_note>{value}</crm:P3_has_note>'
-        value = f"{value}\n{country_xml}"
+        value = process_country_codes(value)
     return value
 
 #44. has_place_uri, dch, desirable
@@ -428,7 +529,6 @@ def get_point_place_uri(dict):
     if value == 'not_defined':
         value = '<dch:place_uri />'
     else:
-        value = check_string(value)
         value = f'<dch:place_uri>{value}</dch:place_uri>'
     return value
 
@@ -437,10 +537,10 @@ def get_latitude(dict):
     value = dict.get('has_latitude')
     value = value.get('Metadata Value')
     value = str(value)
+    value = value.replace(" ", "")
     if value == 'not_defined':
         value = '<geo:lat />'
     else:
-        value = check_string(value)
         value = f'<geo:lat>{value}</geo:lat>'
     return value
 
@@ -449,10 +549,10 @@ def get_longitude(dict):
     value = dict.get('has_longitude')
     value = value.get('Metadata Value')
     value = str(value)
+    value = value.replace(" ", "")
     if value == 'not_defined':
         value = '<geo:long />'
     else:
-        value = check_string(value)
         value = f'<geo:long>{value}</geo:long>'
     return value
 
@@ -465,7 +565,7 @@ def build_point_xml(data_dict):
     latitude = get_latitude(data_dict)
     longitude = get_longitude(data_dict)
 
-    point_xml = f'<dch:has_spatial_coverage><dch:Point>{place_name}{coordinate_system}{country_code}{place_uri}{latitude}{longitude}</dch:Point></dch:has_spatial_coverage>'
+    point_xml = f'<dch:Point>{place_name}{coordinate_system}{country_code}{place_uri}{latitude}{longitude}</dch:Point>'
     return point_xml
 
 #BOUNDING BOX
@@ -496,14 +596,11 @@ def get_bb_coordinate_system(dict):
 def get_bb_country_code(dict):
     value = dict.get('bb_has_country_code')
     value = value.get('Metadata Value')
-    if value == 'not_defined':
+    if value == 'not_defined' or value == 'Is filled out automatically.':
         value = '<crm:P3_has_note />'
     else:
         value = check_string(value)
-        q_id, country_name, name_language = get_country_name(value)
-        country_xml = build_country_xml(q_id, country_name, name_language)
-        value = f'<crm:P3_has_note>{value}</crm:P3_has_note>'
-        value = f"{value}\n{country_xml}"
+        value = process_country_codes(value)
     return value
 
 #44. has_place_uri, dch, desirable
@@ -513,7 +610,6 @@ def get_bb_place_uri(dict):
     if value == 'not_defined':
         value = '<dch:place_uri />'
     else:
-        value = check_string(value)
         value = f'<dch:place_uri>{value}</dch:place_uri>'
     return value
 
@@ -522,6 +618,8 @@ def get_bounding_box_min_lat(dict):
     value = dict.get('has_bounding_box_min_lat')
     value = value.get('Metadata Value')
     value = str(value)
+    #delete whitespaces
+    value = value.replace(" ", "")
     if value == 'not_defined':
         value = '<dch:min_latitude />'
     else:
@@ -534,6 +632,8 @@ def get_bounding_box_min_lon(dict):
     value = dict.get('has_bounding_box_min_lon')
     value = value.get('Metadata Value')
     value = str(value)
+    #delete whitespaces
+    value = value.replace(" ", "")
     if value == 'not_defined':
         value = '<dch:min_longitude />'
     else:
@@ -546,6 +646,8 @@ def get_bounding_box_max_lat(dict):
     value = dict.get('has_bounding_box_max_lat')
     value = value.get('Metadata Value')
     value = str(value)
+    #delete whitespaces
+    value = value.replace(" ", "")
     if value == 'not_defined':
         value = '<dch:max_latitude />'
     else:
@@ -558,6 +660,8 @@ def get_bounding_box_max_lon(dict):
     value = dict.get('has_bounding_box_max_lon')
     value = value.get('Metadata Value')
     value = str(value)
+    #delete whitespaces    
+    value = value.replace(" ", "")
     if value == 'not_defined':
         value = '<dch:max_longitude />'
     else:
@@ -575,8 +679,26 @@ def build_bounding_box_xml(data_dict):
     min_lon = get_bounding_box_min_lon(data_dict)
     max_lat = get_bounding_box_max_lat(data_dict)
     max_lon = get_bounding_box_max_lon(data_dict)
+    #validate box
+    if min_lat == '<dch:min_latitude />' or min_lon == '<dch:min_longitude />' or max_lat == '<dch:max_latitude />' or max_lon == '<dch:max_longitude />':
+        error_log("Error: Bounding box values are not properly defined.")
+    else:
+        min_lat_value = min_lat.replace('<dch:min_latitude>', '').replace('</dch:min_latitude>', '')
+        min_lat_value = float(min_lat_value)
+        min_lon_value = min_lon.replace('<dch:min_longitude>', '').replace('</dch:min_longitude>', '')
+        min_lon_value = float(min_lon_value)
+        max_lat_value = max_lat.replace('<dch:max_latitude>', '').replace('</dch:max_latitude>', '')
+        max_lat_value = float(max_lat_value)
+        max_lon_value = max_lon.replace('<dch:max_longitude>', '').replace('</dch:max_longitude>', '')
+        max_lon_value = float(max_lon_value)
+        if min_lat_value >= max_lat_value:
+            error_log("Error: Bounding box values are not properly defined. Minimum latitude needs to be smaller than maximum latitude.")
+        if min_lon_value >= max_lon_value:
+            error_log("Error: Bounding box values are not properly defined. Minimum longitude needs to be smaller than maximum longitude.")
+        if min_lat_value == max_lat_value or min_lon_value == max_lon_value:
+            error_log("Error: Bounding box values are not properly defined. Minimum latitude and longitude cannot be the same as maximum latitude and longitude.")
 
-    bounding_box_xml = f'<dch:has_spatial_coverage><dch:BoundingBox>{place_name}{coordinate_system}{country_code}{place_uri}{min_lat}{min_lon}{max_lat}{max_lon}</dch:BoundingBox></dch:has_spatial_coverage>'
+    bounding_box_xml = f'<dch:BoundingBox>{place_name}{coordinate_system}{country_code}{place_uri}{min_lat}{min_lon}{max_lat}{max_lon}</dch:BoundingBox>'
     return bounding_box_xml
 
 #POLYGON
@@ -607,14 +729,11 @@ def get_polygon_coordinate_system(dict):
 def get_polygon_country_code(dict):
     value = dict.get('polygon_has_country_code')
     value = value.get('Metadata Value')
-    if value == 'not_defined':
+    if value == 'not_defined' or value == 'Is filled out automatically.':
         value = '<crm:P3_has_note />'
     else:
         value = check_string(value)
-        q_id, country_name, name_language = get_country_name(value)
-        country_xml = build_country_xml(q_id, country_name, name_language)
-        value = f'<crm:P3_has_note>{value}</crm:P3_has_note>'
-        value = f"{value}\n{country_xml}"
+        value = process_country_codes(value)
     return value
 
 #44. polygon_has_place_uri, dch, desirable
@@ -624,7 +743,6 @@ def get_polygon_place_uri(dict):
     if value == 'not_defined':
         value = '<dch:place_uri />'
     else:
-        value = check_string(value)
         value = f'<dch:place_uri>{value}</dch:place_uri>'
     return value
 
@@ -635,7 +753,8 @@ def get_polygon_representation(dict):
     if value == 'not_defined':
         value = '<dch:polygon />'
     else:
-        value = check_string(value)
+        if not value.startswith("POLYGON ((") or not value.endswith("))"):
+            error_log("Error: Polygon representation needs to be in the format 'POLYGON ((x1 y1, x2 y2, x3 y3, x4 y4))'.")
         value = f'<dch:polygon>{value}</dch:polygon>'
     return value
 
@@ -647,7 +766,7 @@ def build_polygon_xml(data_dict):
     place_uri = get_polygon_place_uri(data_dict)
     polygon_representation = get_polygon_representation(data_dict)
 
-    polygon_xml = f'<dch:has_spatial_coverage><dch:Polygon>{place_name}{coordinate_system}{country_code}{place_uri}{polygon_representation}</dch:Polygon></dch:has_spatial_coverage>'
+    polygon_xml = f'<dch:Polygon>{place_name}{coordinate_system}{country_code}{place_uri}{polygon_representation}</dch:Polygon>'
     return polygon_xml
 
 #SPATIAL COVERAGE TYPE CHECK AND BUILDING
@@ -656,13 +775,25 @@ def get_spatial_coverage(dict):
     bounding_box = get_bb_place_name(dict)
     polygon = get_polygon_place_name(dict)
     if point != '<crm:P87_is_identified_by />':
-        spatial_coverage = build_point_xml(dict)
-    elif bounding_box != '<crm:P87_is_identified_by />':
-        spatial_coverage = build_bounding_box_xml(dict)
-    elif polygon != '<crm:P87_is_identified_by />':
-        spatial_coverage = build_polygon_xml(dict)
-    else:
+        spatial_coverage1 = build_point_xml(dict)
+    if bounding_box != '<crm:P87_is_identified_by />':
+        spatial_coverage2 = build_bounding_box_xml(dict)
+    if polygon != '<crm:P87_is_identified_by />':
+        spatial_coverage3 = build_polygon_xml(dict)
+    if point == '' and bounding_box == '' and polygon == '':
         spatial_coverage = '<dch:has_spatial_coverage />'
+    #If more than one spatial coverage type is filled out, combine them in one element
+    spatial_xml = '<dch:has_spatial_coverage>'
+    if point != '<crm:P87_is_identified_by />':
+        spatial_xml += spatial_coverage1
+    if bounding_box != '<crm:P87_is_identified_by />':
+        spatial_xml += spatial_coverage2
+    if polygon != '<crm:P87_is_identified_by />':
+        spatial_xml += spatial_coverage3
+    spatial_xml += '</dch:has_spatial_coverage>'
+
+    spatial_coverage = spatial_xml
+
     return spatial_coverage
 
 #45. has_visual_component, owl, optional
@@ -687,7 +818,9 @@ def get_is_part_of(dict):
         value = f'<dct:isPartOf>{value}</dct:isPartOf>'
     return value
 
-#47. has_data_type, dct, mandatory for individual data resources only
+#47. has_part is created using the is_part_relation reverse.
+
+#48. has_data_type, dct, mandatory for individual data resources only
 def get_data_type(dict):
     value = dict.get('has_data_type')
     value = value.get('Metadata Value')
@@ -698,7 +831,7 @@ def get_data_type(dict):
         value = f'<dct:type>{value}</dct:type>'
     return value
 
-#48. has_data_format, dch, optional for individual data resources only
+#49. has_data_format, dch, optional for individual data resources only
 def get_data_format(dict):
     value = dict.get('has_data_format')
     value = value.get('Metadata Value')
