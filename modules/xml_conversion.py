@@ -316,6 +316,8 @@ def get_derived_subject_uri(dict):
         value = value.split(', ')
         values = []
         for item in value:
+            #delete page/ from the URI to access API instead of human readable page
+            item = item.replace('page/', '')
             item = f'<dch:has_derived_subject_uri>{item}</dch:has_derived_subject_uri>'
             values.append(item)
         value = ''.join(values)
@@ -441,9 +443,9 @@ def get_period(dict):
     value = dict.get('has_periodo_uri')
     value = value.get('Metadata Value')
     if value == 'not_defined':
-        value = '<dch:period />'
+        value = '<dch:has_periodo_uri />'
     else:
-        value = f'<dch:period>{value}</dch:period>'
+        value = f'<dch:has_periodo_uri>{value}</dch:has_periodo_uri>'
     return value
 
 #30. has_chronontology_uri, dch, desirable, combine with 31.
