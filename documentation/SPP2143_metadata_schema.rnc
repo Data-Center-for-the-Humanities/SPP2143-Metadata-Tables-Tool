@@ -1,0 +1,145 @@
+# SPP-2143-Metadata-Standard Description as Relax NG
+# This file describes the metadata structure in the jOAI/OAI-PMH interface where it's harvested by ARIADNE RI
+# The specific SPP 2143 metadata elements are listed under CORE
+
+# This metadata can be created with the help of the Metadata-Tables-Tool: https://github.com/Data-Center-for-the-Humanities/SPP2143-Metadata-Tables-Tool
+
+
+# &-operator is for an arbitrary order of elements
+# ?: element must occur once or never (optional elements)
+# +: at least one instance of this element is mandatory
+# *: element is optional and can appear multiple times
+# no symbol: element must occur exactly once
+
+
+# Namespaces
+namespace oai = "http://www.openarchives.org/OAI/2.0/"
+namespace dri = "http://www.driver-repository.eu/namespace/dri"
+namespace oai_dc = "http://www.openarchives.org/OAI/2.0/oai_dc/"
+namespace dct = "http://purl.org/dc/terms/"
+namespace dch = "http://oai.dch.phil-fak.uni-koeln.de/"
+namespace crm = "http://www.cidoc-crm.org/cidoc-crm/"
+namespace dc = "http://purl.org/dc/elements/1.1/"
+namespace foaf = "http://xmlns.com/foaf/0.1/"
+namespace geo = "http://www.w3.org/2003/01/geo/wgs84_pos#"
+namespace owl = "http://www.w3.org/2002/07/owl#"
+namespace rdfs = "http://www.w3.org/2000/01/rdf-schema#"
+namespace prov = "http://www.openarchives.org/OAI/2.0/provenance"
+
+# Datatypes reference
+datatypes xsd = "http://www.w3.org/2001/XMLSchema-datatypes"
+
+# --- STRUCTURE OF OAI-PMH WRAPPER ---
+start = element oai:record {
+  element oai:header {
+    element dri:objIdentifier { text }? &
+    element dri:recordIdentifier { text }? &
+    element dri:dateOfCollection { text }? &
+    element dri:datasourceprefix { text }? &
+    element dri:datasourcename { text }? &
+    element dri:datasourceapi { text }? &
+    element oai:identifier { text } &
+    element oai:datestamp { text } &
+    element oai:setSpec { text }*
+  },
+  element oai:metadata {
+    element oai_dc:dc { Payload }
+  },
+  element oai:about {
+    element prov:provenance {
+      element prov:originDescription {
+        attribute harvestDate { text }?,
+        attribute altered { text }?,
+        element prov:baseURL { text }?,
+        element prov:identifier { text }?,
+        element prov:datestamp { text }?,
+        element prov:metadataNamespace { text }?
+      }
+    }
+  }?
+}
+
+# --- CORE: SPP 2143 METADATA STANDARD (DATA COLLECTIONS) ---
+Payload =
+  element dct:identifier { text }? &
+  element dct:title { attribute xml:lang { text }?, text }+ &
+  element dct:description { text }? &
+  element crm:P81_ongoing_through { xsd:date } &
+  element dch:was_modified { xsd:date } &
+  
+  element dct:publisher { Agent } &
+  element dct:contributor { Agent } &
+  element dct:creator { Agent } &
+  element dch:has_owner { Agent } &
+  element dch:has_responsible { Agent } &
+  
+  element dch:has_original_id { text } &
+  element dch:has_ariadne_subject { text } &
+  element dc:subject { text }+ &
+  element dch:has_derived_subject_uri { xsd:anyURI | text }+ &
+  element dch:derived_subject_label { text }+ &
+  element crm:P72_has_language { xsd:anyURI | text }+ &
+  element dct:created { xsd:date } &
+  
+  element dch:landing_page { xsd:anyURI | text }? &
+  element dch:access_policy { xsd:anyURI | text }? &
+  element dct:accessRights { text } &
+  element dct:extent { text }? &
+  
+  element dch:has_temporal_coverage { TemporalCoverage }? &
+  element dch:has_spatial_coverage { SpatialCoverage }+ &
+  
+  element owl:sameAs { xsd:anyURI }? &
+  element dct:isPartOf { text }? &
+  element dct:hasPart { text }*
+
+# --- CORE: REPETIVE AND NESTED DATA ---
+
+Agent =
+  element foaf:name { text } &
+  element foaf:identifier { text }? &
+  element foaf:mbox { text }? &
+  element foaf:homepage { text }? &
+  element foaf:member { text }?
+
+TemporalCoverage =
+  element dch:period { xsd:anyURI }? &
+  element dch:native_period { text } &
+  element crm:P79_beginning_is_qualified_by { xsd:gYear }? &
+  element crm:P80_end_is_qualified_by { xsd:gYear }?
+
+SpatialCoverage =
+  ( element dch:Point {
+      element crm:P87_is_identified_by { text } &
+      element dch:coordinate_system { text }? &
+      element dch:wikidata_country { WikidataCountry }+ &
+      element dch:place_uri { xsd:anyURI }? &
+      element geo:lat { text }? &
+      element geo:long { text }? 
+    }? &
+    element dch:BoundingBox {
+      element crm:P87_is_identified_by { text } &
+      element dch:coordinate_system { text }? &
+      element dch:wikidata_country { WikidataCountry }+ &
+      element dch:place_uri { xsd:anyURI }? &
+      element dch:min_latitude { text }? &
+      element dch:min_longitude { text }? &
+      element dch:max_latitude { text }? &
+      element dch:max_longitude { text }?
+    }? &
+    element dch:Polygon {
+      element crm:P87_is_identified_by { text } &
+      element dch:coordinate_system { text }? &
+      element dch:wikidata_country { WikidataCountry }+ &
+      element dch:place_uri { xsd:anyURI }? &
+      element dch:polygon { text }?
+    }? )
+
+WikidataCountry =
+  element dch:wikidata_country_url { text } &
+  element rdfs:label { attribute xml:lang { text }?, text }
+
+
+# Developed by Lukas Lammers (Data Center for the Humanities, University of Cologne) in the project FAIR.rdm, part of SPP 2143 "Entangled Africa"
+# Funded by the German Research Foundation (DFG)
+# 21.08.2026
