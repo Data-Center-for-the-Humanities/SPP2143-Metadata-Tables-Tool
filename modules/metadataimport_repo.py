@@ -73,13 +73,13 @@ print(was_modified)
 #6. has_publisher
 #constant value across all metadata
 def get_publisher(data):
-    has_publisher = "DCH"
+    has_publisher = "Data Center for the Humanities (DCH), University of Cologne"
     return has_publisher
 
 #7. has_contributor
 #constant value across all metadata
 def get_contributor(data):
-    has_contributor = "FAIR.rdm"
+    has_contributor = "not_defined"
     return has_contributor
 
 #8. has_creator
