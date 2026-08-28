@@ -4,7 +4,7 @@
 
 ## Metadataconverter from different repositories into ARIADNE Portal
 
-*MTT Version 1.0 BETA / Dokumentation Version 0.6 / Lukas Lammers / FAIR.rdm (P11) im SPP 2143 “Entangled Africa” founded by the German Research Foundation (DFG)*
+*MTT Version 1.0 / Dokumentation Version 1.0 / Lukas Lammers / FAIR.rdm (P11) im SPP 2143 “Entangled Africa” founded by the German Research Foundation (DFG)*
 
 ## 1. Funktion
 
@@ -22,15 +22,10 @@ Das MTT ist eine Python Anwendung. Python kann hier heruntergeladen werden:
 
 [https://www.python.org/](https://www.python.org/)
 
-Außerdem werden einige Python-Bibliotheken benötigt. Diese können unter Windows im Terminal mit pip installiert werden:
+Außerdem werden einige Python-Bibliotheken benötigt. Diese können mit Ausführen von `install_libraries.bat` automatisch installiert werden.
+Die Bibliotheken sind: requests, pandas, openpyxl, PIL (Pillow), geopandas und shapely.
 
-`pip install pandas`
-
-`pip install requests`
-
-`pip install openpyxl`
-
-Die Ordnerstruktur des MTT ist unbedingt einzuhalten. Es kann mit einem Doppelklick auf `Start_MTT.bat` oder über das Terminal mit Python gestartet werden:
+Die Ordnerstruktur des MTT darf nicht verändert werden. Es kann mit einem Doppelklick auf `Start_MTT.bat` oder über das Terminal mit Python gestartet werden:
 
 `python MTT_MainProgram.py`
 
@@ -60,7 +55,7 @@ Eine Veränderung des zugrunde liegenden Datenschemas (dem SPP2143-Metadatenstan
 
 **/documentation:** Enthält diese Doku, eine Beschreibung des SPP-2143-Metadatenstandards und eine Referenz des AO Cat, der in Gänze auch auf Zenodo zu finden ist.
 
-**/metadata_mirror:** Enthält die für ARIADNE bereitgestellten Metadaten in XML. Wird zu GitLab gespiegelt, von dort in die OAI-PMH Schnittstelle (jOAI via DCH GitLab) und vor dort wiederrum in ARIADNE.
+**/metadata_mirror:** Enthält die für ARIADNE bereitgestellten Metadaten in XML. Wird zu GitLab gespiegelt, von dort in die OAI-PMH Schnittstelle (jOAI via DCH GitLab) und vor dort wiederum in ARIADNE.
 
 **/metadata_tables:** Enthält gesamte Projektdaten in tabellarischer Form. In diesem Ordner befinden sich außerdem die wichtigen Tabellen:
 
@@ -107,33 +102,55 @@ Außerdem enthält der Ordner die grafischen Elemente der Anwendung.
 
 ### 6.1 Das Hauptmenü
 
-Oben links befinden sich fünf Schaltflächen deren Funktionen weiter unten detailliert beschrieben werden:
+Oben befindet sich die Menu Bar mit vier Untermenüs: “Data”, “Open”, “Links” und “Help”. 
+Unter “Data” sind die Hauptfunktionen gebündelt, die weiter unten detailliert beschrieben werden:
 
-- “New Person / Institution” unter 6.1
+- “Change Data Record” unter 6.1
 - “New Data Record” unter 6.2
-- “Change Data Record” unter 6.3
+- “New Person / Institution” unter 6.3
 - “Push to GitLab” unter 6.4
-- “View Online Infrastructure” unter 6.5
 
-Darunter befindet sich der “Data Selector”. Er gibt einen Überblick über bisher angelegte Datensätze. Die einzelnen Einträge lassen sich auswählen. Sie erscheinen dann rechts im “Data Viewer”.
+Mit “Open” können lokale Ressourcen geöffnet werden:
 
-Mit dem “Exit”-Button wird die Anwendung beendet. “Open Documentation” öffnet diese Dokumentation und des SPP2143-Metadatenstandards. “Open Configuration” öffnet die “mtt_config.py” in /modules.
+- “Metadata Mirror” öffnet das Verzeichnis mit den gesamten XML-Metadaten, die in das Git-Repo gespiegelt werden
+- “Metadata Tables” öffnet das Verzeichnis, in dem die tabellarischen Metadaten liegen
+- “Config File” öffnet die Konfigurationsdatei
+- “Registered Persons” öffnet die Tabelle mit den Daten zu Personen und Institutionen
+- “Open with Excel” steht im Hauptmenü nicht zur Verfügung. Wenn Metadaten bearbeitet werden, kann mit dieser Schaltfläche die Tabellendatei geöffnet werden
+- “Show XML” steht im Hauptmenü nicht zur Verfügung. Im Bearbeitungsmodus können nach erfolgreicher XML Konvertierung hiermit die XML-Metadaten angezeigt werden.
 
-### 6.1 Anlegen neuer Person/Institution
+“Links” führen zu relevanten online Ressourcen. URLs können in der Config angepasst werden. Eine Auflistung befindet sich unter 6.5.
 
-Der Button “New Person / Institution” öffnet ein neues Menü zum Anlegen einer neuen Person oder Institution.
+Die Dokumentation des MTT und des SPP-2143-Metadatenstandards kann unter “Help” aufgerufen werden.
 
-Mit dem Radio-Button muss zwischen Person oder Institution gewählt werden.
+Im Hauptmenü befindet sich auf der linken Seite der “Data Selector”. Er gibt einen Überblick über bisher angelegte Datensätze. Vor dem Dateinamen befindet sich ein Symbol, dass Auskunft über den Bearbeitungsstatus eines Metadatensatzes gibt:
 
-Nur der Name ist ein Pflichtfeld. Siehe die SPP2143-Metadatenstandard-Dokumentation für nähere Feldbeschreibungen.
+- ✖️Es sind noch Pflichtfelder auszufüllen
+- 🔘 Alle Pflichtfelder wurden ausgefüllt, aber die XML Konvertierung ist ausstehend
+- ⚫ Die XML Konvertierung wurde durchgeführt, aber die Daten sind noch nicht im Git-Repo gespiegelt worden
+- ✔️ Die XML-Daten wurden ins Git-Repo gespiegelt
 
-Wichtig ist, dass nur Personen einer Institution angehören können. Keine Institution kann in dieser Ontologie einer anderen Institution angehören.
+Die einzelnen Einträge im Data Selector lassen sich auswählen. Sie erscheinen dann rechts im “Data Viewer”.
 
-“Save Entry” speichert den Eintrag. Er wird in der Tabelle “registered_persons.xlsx” gespeichert.
+Mit dem “Exit”-Button wird die Anwendung beendet.
 
-“Cancel without Saving” bricht den Vorgang ab und kehrt ohne zu speichern zum Hauptmenü zurück.
+### 6.1 Ändern eines Metadatensatzes
 
-“Back” kann nach dem Speichern verwendet werden, um ins Hauptmenü zurück zu gelangen.
+Zum Ändern oder Löschen eines Metadatensatzes muss der entsprechende Datensatz im Data Selector ausgewählt werden. Nur dann öffnet sich das weiterführende Menü.
+
+Wird auf diese Weise ein Datensatz geöffnet, aktualisiert sich das Datum in “was_modified” automatisch.
+
+Der Button “Retrieve Data” aktiviert das Metadatenharvesting und fügt alle verfügbaren (natürlich zuvor im entsprechenden Modul gemappten) Metadaten ein.
+
+Die Datenfelder lassen sich im Data Viewer auch manuell bearbeiten. Instruktionen dazu befinden sich unter dem Data Viewer.
+
+“Save Progress” speichert alle Änderungen.
+
+“Open”/”Open with Excel” erlaubt die Bearbeitung direkt in Excel.
+
+Wenn alle mit “mandatory” bezeichneten Felder ausgefüllt sind, kann der Datensatz mit “Convert to XML” in XML-Daten umgewandelt werden. Diese befinden sich dann im Ordner “metadata_mirror”.
+
+Mit der Schaltfläche “Delete Dataset” kann ein Datensatz vollständig gelöscht werden.
 
 ### 6.2 Anlegen eines neuen Metadatensatzes
 
@@ -155,29 +172,27 @@ Die Datenfelder lassen sich im Data Viewer auch manuell bearbeiten. Instruktione
 
 “Save Progress” speichert alle Änderungen.
 
-”Open with Excel” erlaubt die Bearbeitung direkt in Excel.
+“Open”/”Open with Excel” erlaubt die Bearbeitung direkt in Excel.
 
 Wenn alle mit “mandatory” bezeichneten Felder ausgefüllt sind, kann der Datensatz mit “Convert to XML” in XML-Daten umgewandelt werden. Diese befinden sich dann im Ordner “metadata_mirror”.
 
 Mit dem Button “Show XML” kann die soeben generierte XML-Datei geöffnet werden.
 
-### 6.3 Ändern eines Metadatensatzes
+### 6.3 Anlegen neuer Person/Institution
 
-Zum Ändern oder Löschen eines Metadatensatzes muss der entsprechende Datensatz im Data Selector ausgewählt werden. Nur dann öffnet sich das weiterführende Menü.
+Der Button “New Person / Institution” öffnet ein neues Menü zum Anlegen einer neuen Person oder Institution.
 
-Wird auf diese Weise ein Datensatz geöffnet, aktualisiert sich das Datum in “was_modified” automatisch.
+Mit dem Radio-Button muss zwischen Person oder Institution gewählt werden.
 
-Der Button “Retrieve Data” aktiviert das Metadatenharvesting und fügt alle verfügbaren (natürlich zuvor im entsprechenden Modul gemappten) Metadaten ein.
+Nur der Name ist ein Pflichtfeld. Siehe die SPP2143-Metadatenstandard-Dokumentation für nähere Feldbeschreibungen.
 
-Die Datenfelder lassen sich im Data Viewer auch manuell bearbeiten. Instruktionen dazu befinden sich unter dem Data Viewer.
+Wichtig ist, dass nur Personen einer Institution angehören können. Keine Institution kann in dieser Ontologie einer anderen Institution angehören.
 
-“Save Progress” speichert alle Änderungen.
+“Save Entry” speichert den Eintrag. Er wird in der Tabelle “registered_persons.xlsx” gespeichert.
 
-”Open with Excel” erlaubt die Bearbeitung direkt in Excel.
+“Cancel without Saving” bricht den Vorgang ab und kehrt ohne zu speichern zum Hauptmenü zurück.
 
-Wenn alle mit “mandatory” bezeichneten Felder ausgefüllt sind, kann der Datensatz mit “Convert to XML” in XML-Daten umgewandelt werden. Diese befinden sich dann im Ordner “metadata_mirror”.
-
-Mit der Schaltfläche “Delete Dataset” kann ein Datensatz vollständig gelöscht werden.
+“Back” kann nach dem Speichern verwendet werden, um ins Hauptmenü zurück zu gelangen.
 
 ### 6.4 Push to GitLab
 
@@ -185,7 +200,21 @@ Diese Schaltfläche löst eine Synchronisierung zwischen dem Ornder “metadata_
 
 ### 6.5 View Online Infrastructure
 
-Der Knopf öffnet im Browser in der mtt_config.py vordefinierte URLs und verschafft einen Überblick über den weiteren Workflow. Dies können beispielsweise das Git-Repo sein, die OAI-PMH-Schnittstelle oder das ARIADNE-Portal.
+Der Knopf öffnet im Browser in der mtt_config.py vordefinierte URLs, die zu unterschiedlichen Zeitpunkten während der Dateneingabe in ARIADNE relevant sind.
+
+- Getty AAT: Der Getty Art & Architecture Thesaurus dient in ARAIDNE als kontrolliertes Vokabular für Themen und Schlagworte
+- ARAIDNE Portal: Führt zum ARIADNE Portal
+- Staging Portal: Führt zum ARIADNE Staging Portal. Hier können Metadaten im Frontend geprüft werden, bevor sie im Portal veröffentlicht werden.
+- Staging Graph DB: Führt zur Graph DB des Staging Portals. Hier können Metadaten im Backend geprüft werden, bevor sie im Portal veröffentlicht werden.
+- iDAI.chronontology: Führt zum Referenzsystem für Perioden des Deutschen Archäologischen Instituts
+- PeriodO: Führt zum PeriodO Client. Um das canonical dataset zu nutzen, muss permantes Speichern von Daten für diese Website erlaubt werden.
+- AO Cat: Die aktuelle Version der AO Cat Ontology auf Zenodo
+- Lexvo: Für Sprachkürzel
+- GitLab Repo: Führt in das Repo, in das die Metadaten gespiegelt werden und von wo sie wiederum mit der OAI-PMH Schnittstelle synchronisiert werden.
+- jOAI: Provider und Management der OAI-PMH-Schnittstelle
+- OAI-PMH: Diese Schaltfläche stelle eine Request an die OAI-PMH-Schnittstelle, alle Metadaten auszugeben
+- 3M: Das 3M-Mapping-Tool der FORTH, in der das X3ML-Mapping der Metadaten in ARIADNEs Datenmodell eingesehen und bearbeitet werden kann
+- GitHub: Das GitHub-Repo des MTT.
 
 ## 7. Last Notes
 
@@ -195,4 +224,4 @@ im Projekt FAIR.rdm
 teil des SPP 2143 “Entangled Africa”
 gefördert von der Deutschen Forschungsgemeinschaft 2021-2026 (Projektnummer 467208261)
 
-MIT License, Copyright (c) 2025 Lukas Lammers
+MIT License, Copyright (c) 2026 Lukas Lammers
