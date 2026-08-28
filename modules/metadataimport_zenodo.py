@@ -66,30 +66,30 @@ def get_was_modified(data):
 was_modified = get_was_modified(data)
 print(was_modified)
 
-#6. has_publisher
+#8. has_creator
 #constant value across all metadata
-def get_publisher(data):
-    has_publisher = data['metadata']["creators"][0]["name"]
-    has_publisher = has_publisher.split(", ")
-    fist_name = has_publisher[1]
-    last_name = has_publisher[0]
-    has_publisher = f"{fist_name} {last_name}"
-    return has_publisher
+def get_creator(data):
+    has_creator = data['metadata']["creators"][0]["name"]
+    has_creator = has_creator.split(", ")
+    fist_name = has_creator[1]
+    last_name = has_creator[0]
+    has_creator = f"{fist_name} {last_name}"
+    return has_creator
 
-has_publisher = get_publisher(data)
-print(has_publisher)
+has_creator = get_creator(data)
+print(has_creator)
 
 #7. has_contributor
 #constant value across all metadata
 def get_contributor(data):
-    has_contributor = "FAIR.rdm"
+    has_contributor = "not_defined"
     return has_contributor
 
-#8. has_creator
-#set manually
-def get_creator(data):
-    has_creator = 'not_defined'
-    return has_creator
+#6. has_publisher
+#set creator manually while creating a new dataset
+def get_publisher(data):
+    has_publisher= 'Data Center for the Humanities (DCH), University of Cologne'
+    return has_publisher
 
 #9. has_owner
 #set manually
