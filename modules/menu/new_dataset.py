@@ -29,6 +29,15 @@ def new_dataset(root=None):
                 tree.insert('', tk.END, values=(row['Metadata Property'], row['Metadata Value']))
         else:
             tree.insert('', tk.END, values=("No data", "Please create a dataset first"))
+
+    def normalize_log_identifier(value):
+        """Normalize identifier values to the same format used in log.xlsx."""
+        if value is None:
+            return ""
+        value = str(value).strip()
+        if value.lower().endswith('.xlsx'):
+            value = os.path.splitext(value)[0]
+        return value
     
     def save_to_excel_with_formatting(property_name, new_value):
         """Gemeinsame Funktion zum Speichern in Excel mit Formatierung"""
@@ -313,6 +322,29 @@ def new_dataset(root=None):
             pending_changes.clear()
             # Refresh the missing values list after saving
             update_missing_values_list()
+            # Ensure the record status is set to completed only if all mandatory fields are filled
+            if df_current_data is not None:
+                identifier = df_current_data.loc[df_current_data['Metadata Property'] == 'has_identifier', 'Metadata Value']
+                if not identifier.empty:
+                    identifier = str(identifier.iloc[0]).strip()
+                    if identifier and identifier != 'not_defined':
+                        log_tables_path = os.path.join(os.path.dirname(__file__), "../../metadata_tables")
+                        log_file_path = os.path.join(log_tables_path, "log.xlsx")
+                        if os.path.exists(log_file_path):
+                            df_log = pd.read_excel(log_file_path)
+                            if {'identifier', 'metadata_status'}.issubset(df_log.columns):
+                                df_log['identifier'] = df_log['identifier'].astype(str)
+                                df_log['metadata_status'] = df_log['metadata_status'].fillna('').astype(str)
+                                if not any(
+                                    (field not in df_current_data['Metadata Property'].tolist() or pd.isna(df_current_data.loc[df_current_data['Metadata Property'] == field, 'Metadata Value'].values[0]) or str(df_current_data.loc[df_current_data['Metadata Property'] == field, 'Metadata Value'].values[0]).strip() == 'not_defined')
+                                    for field in [
+                                        'has_title', 'was_issued', 'was_modified', 'has_publisher', 'has_contributor', 'has_creator',
+                                        'has_owner', 'has_responsible', 'has_original_id', 'has_ariadne_subject', 'has_native_subject',
+                                        'has_derived_subject_uri', 'has_derived_subject_term', 'has_language', 'was_created_on', 'has_access_rights', 'has_native_period'
+                                    ]
+                                ):
+                                    df_log.loc[df_log['identifier'] == identifier, 'metadata_status'] = 'completed'
+                                    df_log.to_excel(log_file_path, index=False)
         
         cleanup_edit()
 
@@ -363,9 +395,14 @@ def new_dataset(root=None):
             log_file_path = os.path.join(log_tables_path, "log.xlsx")
             if os.path.exists(log_file_path):
                 df_log = pd.read_excel(log_file_path)
-                identifier = df_current_data.loc[df_current_data['Metadata Property'] == 'has_identifier', 'Metadata Value'].values[0]
-                df_log.loc[df_log['identifier'] == identifier, 'metadata_status'] = 'converted'
-                df_log.to_excel(log_file_path, index=False)
+                if {'identifier', 'metadata_status'}.issubset(df_log.columns):
+                    identifier = normalize_log_identifier(
+                        df_current_data.loc[df_current_data['Metadata Property'] == 'has_identifier', 'Metadata Value'].values[0]
+                    )
+                    df_log['identifier'] = df_log['identifier'].fillna('').astype(str).str.strip()
+                    df_log['metadata_status'] = df_log['metadata_status'].fillna('').astype(str).str.strip()
+                    df_log.loc[df_log['identifier'].str.replace(r'\.xlsx$', '', regex=True) == identifier, 'metadata_status'] = 'converted'
+                    df_log.to_excel(log_file_path, index=False)
 
     def show_xml():
         print("Opening most current XML file...")
@@ -378,6 +415,153 @@ def new_dataset(root=None):
                 os.startfile(xml_path)
             else:
                 messagebox.showerror("Error", f"XML file {filename}.xml does not exist. Please convert to XML first.")
+
+    def open_metadata_mirror():
+            '''
+            Open the metadata_mirror folder in the default file explorer
+            '''
+            print("Open Metadata Mirror clicked")
+            #Open the metadata_mirror folder in the default file explorer
+            metadata_mirror_path = os.path.join(os.path.dirname(__file__), f"../../{mtt_config.local_folder}")
+            if os.path.exists(metadata_mirror_path):
+                webbrowser.open(metadata_mirror_path)
+            else:
+                messagebox.showerror("Error", f"Metadata mirror folder not found: {metadata_mirror_path}")
+
+    def open_metadata_tables():
+        '''
+        Open the metadata_tables folder in the default file explorer
+        '''
+        print("Open Metadata Tables clicked")
+        #Open the metadata_tables folder in the default file explorer
+        metadata_tables_path = os.path.join(os.path.dirname(__file__), "../../metadata_tables")
+        if os.path.exists(metadata_tables_path):
+            webbrowser.open(metadata_tables_path)
+        else:
+            messagebox.showerror("Error", f"Metadata tables folder not found: {metadata_tables_path}")
+
+    def open_config():
+        """Open the configuration file in the default text editor"""
+        config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../mtt_config.py"))
+        try:
+            if os.name == 'nt':  # For Windows
+                os.startfile(config_path)
+        except AttributeError:
+            messagebox.showerror("Error", f"Could not open configuration file.")
+
+    def open_registered_persons():
+        '''
+        Open the registered_persons.xlsx file in the default application
+        '''
+        print("Open Registered Persons clicked")
+        #Open the registered_persons.xlsx file in the default application
+        registered_persons_path = os.path.join(os.path.dirname(__file__), "../../metadata_tables/registered_persons.xlsx")
+        if os.path.exists(registered_persons_path):
+            webbrowser.open(registered_persons_path)
+        else:
+            messagebox.showerror("Error", f"Registered persons file not found: {registered_persons_path}")
+
+    def open_getty_aat():
+        '''
+        Open the Getty AAT website in the default web browser
+        '''
+        print("Open Getty AAT clicked")
+        webbrowser.open_new_tab(mtt_config.getty_aat)
+
+    def open_ariadne_portal():
+        '''
+        Open the ARIADNE Portal website in the default web browser
+        '''
+        print("Open ARIADNE Portal clicked")
+        webbrowser.open_new_tab(mtt_config.ariadne_portal)
+
+    def open_staging_portal():
+        '''
+        Open the Staging Portal website in the default web browser
+        '''
+        print("Open Staging Portal clicked")
+        webbrowser.open_new_tab(mtt_config.staging_portal)
+
+    def open_staging_graph_db():
+        '''
+        Open the Staging Graph DB website in the default web browser
+        '''
+        print("Open Staging Graph DB clicked")
+        webbrowser.open_new_tab(mtt_config.staging_graph_db)
+
+    def open_chronontology():
+        '''
+        Open the iDAI.chronontology website in the default web browser
+        '''
+        print("Open iDAI.chronontology clicked")
+        webbrowser.open_new_tab(mtt_config.chronontology)
+
+    def open_periodo():
+        '''
+        Open the PeriodO website in the default web browser
+        '''
+        print("Open PeriodO clicked")
+        webbrowser.open_new_tab(mtt_config.periodo)
+
+    def open_ao_cat():
+        '''
+        Open the AO Cat website in the default web browser
+        '''
+        print("Open AO Cat clicked")
+        webbrowser.open_new_tab(mtt_config.ao_cat)
+
+    def open_lexvo():
+        '''
+        Open the Lexvo website in the default web browser
+        '''
+        print("Open Lexvo clicked")
+        webbrowser.open_new_tab(mtt_config.lexvo)
+
+    def open_gitlab_repo():
+        '''
+        Open the GitLab repository in the default web browser
+        '''
+        print("Open GitLab Repo clicked")
+        webbrowser.open_new_tab(mtt_config.git_repo)
+
+    def open_joai():
+        '''
+        Open the jOAI website in the default web browser
+        '''
+        print("Open jOAI clicked")
+        webbrowser.open_new_tab(mtt_config.oai_pmh_status)
+    
+    def open_oai_pmh():
+        '''
+        Open the OAI-PMH website in the default web browser
+        '''
+        print("Open OAI-PMH clicked")
+        webbrowser.open_new_tab(mtt_config.oai_pmh_list)
+
+    def open_3m():
+        '''
+        Open the 3M website in the default web browser
+        '''
+        print("Open 3M clicked")
+        webbrowser.open_new_tab(mtt_config.three_m)
+
+    def open_github():
+        '''
+        Open the GitHub website in the default web browser
+        '''
+        print("Open GitHub clicked")
+        webbrowser.open_new_tab(mtt_config.git_hub)
+
+    def open_documentation():
+        """Open the documentation in a web browser"""
+        #The file is /documentation/MTT_Readme.html
+        doc_path2 = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../documentation/MTT_Readme.html"))
+        webbrowser.open(f"file:///{doc_path2.replace(os.sep, '/')}")
+
+    def open_metadata_standard():
+        """Open the SPP-2143 Metadata Standard in a web browser"""
+        doc_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../documentation/SPP_2143_Metadata_Standard_Documentation.html"))
+        webbrowser.open(f"file:///{doc_path.replace(os.sep, '/')}")
 
     def go_back():
         print("Button Back clicked")
@@ -398,31 +582,70 @@ def new_dataset(root=None):
 
     #Titel 1. Zeile
     label_title = tk.Label(newdatamenu, text="Creation of a new Metadataset", font=("Helvetica", 16, "bold"), anchor="w")
-    label_title.grid(row=0, column=0, columnspan=2, pady=10, padx=10, sticky="nw")
+    label_title.grid(row=0, column=0, columnspan=2, pady=(5, 0), padx=10, sticky="nw")
 
     #Untertitel 2. Zeile
     label_subtitle = tk.Label(newdatamenu, text="Fetch data from repository of origin and add missing values manually.", font=("Helvetica", 12, "bold"), anchor="w")
-    label_subtitle.grid(row=1, column=0, columnspan=2, pady=10, padx=10, sticky="nw")
+    label_subtitle.grid(row=1, column=0, columnspan=2, pady=(3, 0), padx=10, sticky="nw")
 
-    #Button 3. Zeile
-    button1 = tk.Button(newdatamenu, text="Retrieve Data", command=lambda: retrieve_data(), width=35, height=2)
-    button1.grid(row=2, column=0, pady=10, padx=15, sticky="nw")
+    menu_bar = tk.Menu(newdatamenu)
+    
+    data_menu = tk.Menu(menu_bar, tearoff=0)
+    data_menu.add_command(label="Change Dataset", state="disabled", accelerator="Ctrl+C")
+    data_menu.add_command(label="New Data Record", state="disabled", accelerator="Ctrl+N")
+    data_menu.add_command(label="New Person / Institution", state="disabled", accelerator="Ctrl+P")
+    data_menu.add_command(label="Push to GitLab", state="disabled", accelerator="Ctrl+G")
+    data_menu.add_separator()
+    data_menu.add_command(label="Retrieve Data", accelerator="Ctrl+R", command=retrieve_data)
+    data_menu.add_command(label="Save Progress", accelerator="Ctrl+S", command=save_edit)
+    data_menu.add_command(label="Convert to XML", accelerator="Ctrl+X", command=xml_initiate_conversion)
+    data_menu.add_separator()
+    data_menu.add_command(label="Delete Dataset", state="disabled")
+    menu_bar.add_cascade(label="Data", menu=data_menu)
+    
+    open_menu = tk.Menu(menu_bar, tearoff=0)
+    open_menu.add_command(label="Metadata Mirror", command=open_metadata_mirror)
+    open_menu.add_command(label="Metadata Tables", command=open_metadata_tables)
+    open_menu.add_command(label="Config File", command=open_config)
+    open_menu.add_command(label="Registered Persons", command=open_registered_persons)
+    open_menu.add_separator()
+    open_menu.add_command(label="Open with Excel", command=open_with_excel)
+    open_menu.add_command(label="Show XML", command=show_xml)
+    menu_bar.add_cascade(label="Open", menu=open_menu)
+    
+    links_menu = tk.Menu(menu_bar, tearoff=0)
+    links_menu.add_command(label="Getty AAT", command=open_getty_aat)
+    links_menu.add_command(label="ARIADNE Portal", command=open_ariadne_portal)
+    links_menu.add_command(label="Staging Portal", command=open_staging_portal)
+    links_menu.add_command(label="Staging Graph DB", command=open_staging_graph_db)
+    links_menu.add_command(label="iDAI.chronontology", command=open_chronontology)
+    links_menu.add_command(label="PeriodO", command=open_periodo)
+    links_menu.add_command(label="AO Cat", command=open_ao_cat)
+    links_menu.add_command(label="Lexvo", command=open_lexvo)
+    links_menu.add_command(label="GitLab Repo", command=open_gitlab_repo)
+    links_menu.add_command(label="jOAI", command=open_joai)
+    links_menu.add_command(label="OAI-PMH", command=open_oai_pmh)
+    links_menu.add_command(label="3M", command=open_3m)
+    links_menu.add_command(label="GitHub", command=open_github)
+    menu_bar.add_cascade(label="Links", menu=links_menu)
+    
+    help_menu = tk.Menu(menu_bar, tearoff=0)
+    help_menu.add_command(label="MTT Documentation", command=open_documentation)
+    help_menu.add_command(label="SPP-2143-Metadata-Standard", command=open_metadata_standard)
+    help_menu.add_separator()
+    help_menu.add_command(label="About", state="disabled")
+    menu_bar.add_cascade(label="Help", menu=help_menu)
+    
+    newdatamenu.config(menu=menu_bar)
 
-    #Button 4. Zeile
-    button2 = tk.Button(newdatamenu, text="Save Progress", command=save_edit, width=35, height=2)
-    button2.grid(row=3, column=0, pady=10, padx=15, sticky="nw")
-
-    #Button 5. Zeile
-    button3 = tk.Button(newdatamenu, text="Open with Excel", command=open_with_excel, width=35, height=2)
-    button3.grid(row=4, column=0, pady=10, padx=15, sticky="nw")
-
-    #Button 6. Zeile
-    button4 = tk.Button(newdatamenu, text="Convert to XML", command=xml_initiate_conversion, width=35, height=2)
-    button4.grid(row=5, column=0, pady=10, padx=15, sticky="nw")
-
-    #Button 7. Zeile
-    button5 = tk.Button(newdatamenu, text="Show XML", command=show_xml, width=35, height=2)
-    button5.grid(row=6, column=0, pady=10, padx=15, sticky="nw")
+    # Keyboard shortcuts
+    #newdatamenu.bind("<Control-c>", lambda e: button3_action())
+    #newdatamenu.bind("<Control-n>", lambda e: button2_action())
+    #newdatamenu.bind("<Control-p>", lambda e: button1_action())
+    #newdatamenu.bind("<Control-g>", lambda e: button4_action())
+    newdatamenu.bind("<Control-r>", lambda e: retrieve_data())
+    newdatamenu.bind("<Control-s>", lambda e: save_edit())
+    newdatamenu.bind("<Control-x>", lambda e: xml_initiate_conversion())
 
     # Load metadata files and current data first
     metadata_tables_path = os.path.join(os.path.dirname(__file__), "../../metadata_tables")
@@ -441,14 +664,19 @@ def new_dataset(root=None):
     
     #ToDo Listbox in Zeile 8 - Show missing values
     scrollbar_frame = tk.Frame(newdatamenu)
-    scrollbar_frame.grid(row=7, column=0, pady=10, padx=15, sticky="w")
+    scrollbar_frame.grid(row=2, column=0, rowspan=6, pady=10, padx=15, sticky="nsew")
+    #allow the scrollbar_frame to expand to match the height of viewer_frame
+    newdatamenu.grid_columnconfigure(0, weight=4)
+    newdatamenu.grid_rowconfigure(2, weight=4)
+    scrollbar_frame.grid_rowconfigure(1, weight=1)
+    scrollbar_frame.grid_columnconfigure(0, weight=1)
 
     label_list = tk.Label(scrollbar_frame, text="Missing Values", font=("Helvetica", 8), anchor="w")
-    label_list.grid(sticky="w")
+    label_list.grid(row=0, column=0, columnspan=2, sticky="w")
 
     scrollbar = tk.Scrollbar(scrollbar_frame)
-    scrollbar.grid(row=0, column=1, sticky='ns')
-    value_list = tk.Listbox(scrollbar_frame, yscrollcommand=scrollbar.set, width=40, height=15)
+    scrollbar.grid(row=1, column=1, sticky='ns')
+    value_list = tk.Listbox(scrollbar_frame, yscrollcommand=scrollbar.set, width=40)
     
     # Define mandatory and desirable fields
     mandatory_fields_collection = [
@@ -516,19 +744,28 @@ def new_dataset(root=None):
                 mandatory_fields = mandatory_fields_collection
             else:
                 mandatory_fields = mandatory_fields_individual_data_resource
-            # Check mandatory fields    
+
+            all_mandatory_complete = True
+            # Check mandatory fields
             for field in mandatory_fields:
                 if field not in current_properties or pd.isna(current_values.get(field)) or str(current_values.get(field)).strip() == 'not_defined':
                     missing_items.append(f"🔴 MANDATORY: {field}")
-                else:
-                    #set metadata_status in log file to completed for this record
-                    log_tables_path = os.path.join(os.path.dirname(__file__), "../../metadata_tables")
-                    log_file_path = os.path.join(log_tables_path, "log.xlsx")
-                    if os.path.exists(log_file_path):
-                        df_log = pd.read_excel(log_file_path)
-                        identifier = current_values.get('has_identifier')
-                        df_log.loc[df_log['identifier'] == identifier, 'metadata_status'] = 'completed'
-                        df_log.to_excel(log_file_path, index=False)
+                    all_mandatory_complete = False
+
+            # Only set the status after all mandatory fields are confirmed complete.
+            if all_mandatory_complete:
+                log_tables_path = os.path.join(os.path.dirname(__file__), "../../metadata_tables")
+                log_file_path = os.path.join(log_tables_path, "log.xlsx")
+                if os.path.exists(log_file_path):
+                    df_log = pd.read_excel(log_file_path)
+                    if {'identifier', 'metadata_status'}.issubset(df_log.columns):
+                        identifier = normalize_log_identifier(current_values.get('has_identifier'))
+                        if identifier and identifier != 'not_defined':
+                            df_log['identifier'] = df_log['identifier'].fillna('').astype(str).str.strip()
+                            df_log['identifier'] = df_log['identifier'].str.replace(r'\.xlsx$', '', regex=True)
+                            df_log['metadata_status'] = df_log['metadata_status'].fillna('').astype(str).str.strip()
+                            df_log.loc[df_log['identifier'] == identifier, 'metadata_status'] = 'completed'
+                            df_log.to_excel(log_file_path, index=False)
             
             # Check desirable fields
             for field in desirable_fields:
@@ -548,11 +785,6 @@ def new_dataset(root=None):
         else:
             value_list.insert(tk.END, "✅ All mandatory fields completed!")
             value_list.insert(tk.END, "✅ All desirable fields completed!")
-        
-        # Update the count in the label
-        mandatory_missing = len([item for item in missing_items if "MANDATORY" in item])
-        desirable_missing = len([item for item in missing_items if "DESIRABLE" in item])
-        label_list.config(text=f"Missing Values (🔴{mandatory_missing} mandatory, 🟡{desirable_missing} desirable)")
     
     def on_missing_value_select(event):
         """Handle selection of missing value to jump to it in the tree"""
@@ -572,7 +804,7 @@ def new_dataset(root=None):
                         tree.see(item)
                         break
 
-    value_list.grid(row=0, column=0, sticky='nsew')
+    value_list.grid(row=1, column=0, sticky='nsew')
     scrollbar.config(command=value_list.yview)
     value_list.bind('<<ListboxSelect>>', on_missing_value_select)
 
@@ -627,7 +859,8 @@ def new_dataset(root=None):
             # Get current value and property name
             current_value = tree.item(item, 'values')[1]
             property_name = tree.item(item, 'values')[0]
-            
+
+            #BUILD DROPDOWNS FOR CERTAIN FIELDS
             # Check if this is the "is_part_of" field
             if property_name == 'is_part_of':
                 # Get list of available datasets from metadata_mirror folder
@@ -639,6 +872,22 @@ def new_dataset(root=None):
                 
                 # Create combobox widget for editing
                 edit_entry = ttk.Combobox(tree, values=available_datasets, state='readonly')
+                edit_entry.place(x=bbox[0], y=bbox[1], width=bbox[2], height=bbox[3])
+                
+                # Set current value
+                edit_entry.set(current_value)
+                edit_entry.focus()
+                
+                # Bind events
+                edit_entry.bind('<Escape>', cancel_edit)
+                edit_entry.bind('<Return>', do_edit)
+                edit_entry.bind('<<ComboboxSelected>>', do_edit)
+                        #Get languages from config
+            elif property_name == 'has_language':
+                # Get predefined languages from mtt_config.py
+                predefined_languages = mtt_config.languages
+                # Create combobox widget for editing
+                edit_entry = ttk.Combobox(tree, values=predefined_languages, state='readonly')
                 edit_entry.place(x=bbox[0], y=bbox[1], width=bbox[2], height=bbox[3])
                 
                 # Set current value
@@ -674,6 +923,27 @@ def new_dataset(root=None):
                 edit_entry.set(current_value)
                 edit_entry.focus()
                 
+                # Bind events
+                edit_entry.bind('<Escape>', cancel_edit)
+                edit_entry.bind('<Return>', do_edit)
+                edit_entry.bind('<<ComboboxSelected>>', do_edit)
+                        #if if person i required provide a dropdown from excel file from metadata_tables/registered_persons.xlsx
+            elif property_name == "has_contributor" or property_name == "has_creator" or property_name == "has_owner" or property_name == "has_responsible" or property_name == "has_publisher":
+                # Get list of registered persons from metadata_tables/registered_persons.xlsx
+                registered_persons_path = os.path.join(os.path.dirname(__file__), "../../metadata_tables/registered_persons.xlsx")
+                registered_persons = []
+                if os.path.exists(registered_persons_path):
+                    df_registered_persons = pd.read_excel(registered_persons_path)
+                    registered_persons = df_registered_persons['Name'].tolist()
+                        
+                # Create combobox widget for editing
+                edit_entry = ttk.Combobox(tree, values=registered_persons, state='readonly')
+                edit_entry.place(x=bbox[0], y=bbox[1], width=bbox[2], height=bbox[3])
+                        
+                # Set current value
+                edit_entry.set(current_value)
+                edit_entry.focus()
+                        
                 # Bind events
                 edit_entry.bind('<Escape>', cancel_edit)
                 edit_entry.bind('<Return>', do_edit)
@@ -737,23 +1007,15 @@ def new_dataset(root=None):
     # Initialize the missing values list
     update_missing_values_list()
 
-    def open_documentation():
-        """Open the documentation in a web browser"""
-        #The file is /documentation/MTT_Readme.html
-        doc_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../documentation/SPP 2143_Metadata_Standard_Documentation.html"))
-        doc_path2 = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../documentation/MTT_Readme.html"))
-        webbrowser.open(f"file:///{doc_path2.replace(os.sep, '/')}")
-        webbrowser.open(f"file:///{doc_path.replace(os.sep, '/')}")
-
-
-
    # Back button
     back_button = tk.Button(newdatamenu, text="Back", command=go_back, width=25, height=1, bg="orange", fg="white", font=("Helvetica", 10, "bold"))
     back_button.grid(row=9, column=0, columnspan=2, padx=10, pady=5, sticky="w")
 
+    '''
     # Open documentation button
     open_doc_button = tk.Button(newdatamenu, text="Open Documentation", command=open_documentation, width=25, height=1, bg="light blue", fg="white", font=("Helvetica", 10, "bold"))
     open_doc_button.grid(row=9, column=0, columnspan=2, padx=10, pady=5)
+    '''
 
     # Cancel button
     cancel_button = tk.Button(newdatamenu, text="Cancel without Saving", command=go_back, width=25, height=1, bg="red", fg="black", font=("Helvetica", 10, "bold"))
@@ -792,3 +1054,4 @@ else:
     from recognize_repository import rec_repo
     import xml_conversion
     from modules.menu import main_menu
+    import mtt_config
