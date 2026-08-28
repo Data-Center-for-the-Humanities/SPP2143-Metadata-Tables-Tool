@@ -9,7 +9,7 @@ import requests
 import json
 
 #Parameters for test
-test_id = "https://arachne.dainst.org/entity/6945889"
+test_id = "https://arachne.dainst.org/entity/5485239"
 test_id2 = "https://arachne.dainst.org/entity/7120743"
 
 #Constant Values only for this repository
@@ -28,7 +28,7 @@ def get_metadata(uri):
     data = response.json()
     return data
 
-#data = get_metadata(test_id2)
+#data = get_metadata(test_id)
 #print(data)
 
 #1. has_identifier
@@ -71,13 +71,13 @@ def get_was_modified(data):
 #6. has_publisher
 #constant value across all metadata
 def get_publisher(data):
-    has_publisher = "DCH"
+    has_publisher = "Data Center for the Humanities (DCH), University of Cologne"
     return has_publisher
 
 #7. has_contributor
 #constant value across all metadata
 def get_contributor(data):
-    has_contributor = "FAIR.rdm"
+    has_contributor = 'not_defined'
     return has_contributor
 
 #8. has_creator
@@ -202,6 +202,11 @@ def get_chronontology_uri(data):
    for dict in sections:
       if 'label' in dict and dict['label'] == 'Datierung':
         dating = dict['content'][0]['value']
+        #get the list item with "chronontology" in it
+        for item in dating:
+            if "chronontology" in item:
+               dating = item
+               break
         dating = dating.split('"')
         uris = []
         for a in dating:
