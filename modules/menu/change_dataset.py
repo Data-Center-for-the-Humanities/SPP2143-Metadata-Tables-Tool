@@ -21,7 +21,7 @@ def change_dataset(root=None, selected_file=None):
         newdatamenu = tk.Toplevel(root)
 
     # Create the main window
-    newdatamenu.title("FAIR.rdm MTT Beta 1.0")
+    newdatamenu.title("FAIR.rdm MTT")
     newdatamenu.geometry("800x750")
 
     def refresh_treeview():
