@@ -19,7 +19,7 @@ def main_menu_design(root=None):
     else:
         mainmenu = root
         
-    mainmenu.title("FAIR.rdm MTT Beta 1.0")
+    mainmenu.title("FAIR.rdm MTT")
     mainmenu.geometry("800x750")
     mainmenu.configure(bg="#f0f0f0")
     
