@@ -9,8 +9,8 @@ import requests
 import json
 
 #Parameters for test
-test_id = "https://arachne.dainst.org/entity/5485239"
-test_id2 = "https://arachne.dainst.org/entity/7120743"
+test_id = "https://arachne.dainst.org/entity/6945889"
+test_id2 = "https://arachne.dainst.org/entity/5485159"
 
 #Constant Values only for this repository
 # has language = german
@@ -37,6 +37,19 @@ def get_metadata(uri):
 #2. has_title
 def get_title(data):
     title = data["title"]
+    test_title = title.lower()
+    letterlist = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"]
+    count = 0
+    for letter in letterlist:
+        if letter in test_title:
+            count += 1  
+    if count >= 3:
+        title = title
+    else:
+        typus = data["facet_topographietypus"][0]
+        #each word in typus should be capitalized
+        typus = typus.title()
+        title = f"{typus} {title}@en"
     return title
 
 #title = get_title(data)
@@ -184,7 +197,7 @@ def get_native_period(data):
         native_period = data["dates"]
         #Check if native period consits of equal items
         if all(item == native_period[0] for item in native_period):
-            return native_period[0]
+            return native_period[0]['label']
         else:
             period1 = native_period[0]['label']
             period2 = native_period[1]['label']
