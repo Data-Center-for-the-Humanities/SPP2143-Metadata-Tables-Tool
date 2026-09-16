@@ -46,10 +46,14 @@ def get_title(data):
     if count >= 3:
         title = title
     else:
-        typus = data["facet_topographietypus"][0]
-        #each word in typus should be capitalized
-        typus = typus.title()
-        title = f"{typus} {title}@en"
+        #check if facet_topographietypus exists in data
+        if "facet_topographietypus" not in data:
+            typus = "not_defined"
+        else:
+            typus = data["facet_topographietypus"][0]
+            #each word in typus should be capitalized
+            typus = typus.title()
+            title = f"{typus} {title}@en"
     return title
 
 #title = get_title(data)
